@@ -1,0 +1,7 @@
+hzmJob:
+  mysql:
+    host: 1.13.249.160
+    port: 3306
+    username: root
+    password: kTICUG4OV3XKLvCb
+    dbname: yunlingdemo
