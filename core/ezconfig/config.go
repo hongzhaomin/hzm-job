@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"github.com/hongzhaomin/hzm-job/admin/internal/tools"
+	"github.com/hongzhaomin/hzm-job/core/internal/tools"
 	"github.com/spf13/viper"
 	"log/slog"
 	"os"
