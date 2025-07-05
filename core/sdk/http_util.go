@@ -1,4 +1,4 @@
-package tools
+package sdk
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ type RemotingUtil struct {
 	maxRetry int
 }
 
-func New(opts ...Option) *RemotingUtil {
+func NewRemotingUtil(opts ...Option) *RemotingUtil {
 	h := &RemotingUtil{
 		client:   &http.Client{Timeout: 3 * time.Second},
 		maxRetry: 2,
