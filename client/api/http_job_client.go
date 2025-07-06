@@ -1,11 +1,10 @@
-package executor
+package api
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hongzhaomin/hzm-job/client/api"
-	"github.com/hongzhaomin/hzm-job/client/model"
+	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"io"
 	"log/slog"
 	"net/http"
@@ -18,7 +17,7 @@ const (
 	jobHandle = "job-handle"
 )
 
-var _ api.JobClientApi = (*HttpJobClient)(nil)
+var _ JobClientApi = (*HttpJobClient)(nil)
 
 type HttpJobClient struct{}
 
@@ -26,7 +25,7 @@ func (my *HttpJobClient) HeatBeat() {
 	fmt.Println("heat beat job")
 }
 
-func (my *HttpJobClient) JobHandle(req *api.JobHandleReq) {
+func (my *HttpJobClient) JobHandle(req *JobHandleReq) {
 	marshal, _ := json.Marshal(req)
 	fmt.Println("job handle:", string(marshal))
 }
@@ -35,12 +34,12 @@ func (my *HttpJobClient) Start() {
 	http.HandleFunc(path.Join(baseUrl, heartBeat), func(w http.ResponseWriter, r *http.Request) {
 		commonHandlerFun(w, r, func(param any) (any, error) {
 			my.HeatBeat()
-			return "ok", nil
+			return true, nil
 		})
 	})
 
 	http.HandleFunc(path.Join(baseUrl, jobHandle), func(w http.ResponseWriter, r *http.Request) {
-		commonHandlerFun[api.JobHandleReq](w, r, func(param api.JobHandleReq) (any, error) {
+		commonHandlerFun[JobHandleReq](w, r, func(param JobHandleReq) (any, error) {
 			my.JobHandle(&param)
 			return true, nil
 		})
@@ -79,9 +78,9 @@ func commonHandlerFun[P any](res http.ResponseWriter, req *http.Request, fn func
 	res.WriteHeader(http.StatusOK)
 	res.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		json.NewEncoder(res).Encode(model.Fail[any](err.Error()))
+		_ = json.NewEncoder(res).Encode(sdk.Fail[any](err.Error()))
 	} else {
-		json.NewEncoder(res).Encode(model.Ok2[any](data))
+		_ = json.NewEncoder(res).Encode(sdk.Ok2[any](data))
 	}
 
 }

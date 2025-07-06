@@ -1,0 +1,17 @@
+hzm:
+  job:
+#    mysql:
+#      host: 1.13.249.160
+#      port: 3306
+#      username: root
+#      password: kTICUG4OV3XKLvCb
+#      dbname: yunlingdemo
+    mysql:
+      host: localhost
+      port: 3306
+      username: root
+      password: hzm2mnoto4_
+      dbname: webapp-easy-office
+
+    config:
+      accessToken: 123456
