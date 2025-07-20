@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"github.com/hongzhaomin/hzm-job/core/internal/tools"
+	"github.com/hongzhaomin/hzm-job/core/tools"
 	"github.com/spf13/viper"
 	"log/slog"
 	"os"
@@ -14,8 +14,14 @@ import (
 	"time"
 )
 
-// aliasTag 可以给 ConfigurationBean 中的属性设置别名
-const aliasTag = "alias"
+const (
+	// aliasTag 可以给 ConfigurationBean 中的属性设置别名
+	aliasTag = "alias"
+	// 配置项配置默认值
+	defaultTag = "default"
+	// 配置项不自动刷新
+	notAutoRefreshTag = "notAutoRefresh"
+)
 
 // Properties 配置核心接口，也是easyconfig的核心
 type Properties interface {
@@ -232,12 +238,12 @@ func (my *properties) setConfigBeans(configBeans []ConfigurationBean) {
 			return
 		}
 
-		my.doSetConfigBean(configBean, definition, mapValue, key, false)
+		my.doSetConfigBean(configBean, definition, mapValue, key, false, false)
 	}
 }
 
 func (my *properties) doSetConfigBean(configBean any, definition ConfigurationBeanDefinition,
-	mapValue map[string]any, viperKey string, ignoreEmpty bool) {
+	mapValue map[string]any, viperKey string, ignoreEmpty, refresh bool) {
 	// 忽略无法转换的无效的属性（即忽略那些配置中属性类型无法转换为结构体属性类型的字段）
 	ignoreInvalidFields := definition.IgnoreInvalidFields
 
@@ -271,6 +277,12 @@ func (my *properties) doSetConfigBean(configBean any, definition ConfigurationBe
 		// 字段反射值
 		rvField := rv.Field(i)
 
+		// 判断该配置项是否开启不自动刷新
+		if _, ok := structField.Tag.Lookup(notAutoRefreshTag); ok && refresh {
+			// 开启，跳过
+			continue
+		}
+
 		if structField.Anonymous {
 			// 如果是内嵌字段，并且不是 注解类ConfigurationProperties，则当成父类注入配置
 			isConfigurationProperties := rtField == rtConfigurationProperties
@@ -281,7 +293,7 @@ func (my *properties) doSetConfigBean(configBean any, definition ConfigurationBe
 					newRvField := reflect.New(rtField)
 					rvField.Set(newRvField)
 				}
-				my.doSetConfigBean(rvField, definition, mapValue, viperKey, ignoreEmpty)
+				my.doSetConfigBean(rvField, definition, mapValue, viperKey, ignoreEmpty, refresh)
 			} else {
 				if !isConfigurationProperties {
 					// 其他类型的内嵌字段，全部忽略
@@ -301,10 +313,15 @@ func (my *properties) doSetConfigBean(configBean any, definition ConfigurationBe
 		nextViperKey := viperKey + "." + mapKey
 		fieldMapVal := mapValue[mapKey]
 		if fieldMapVal == nil {
-			if !ignoreInvalidFields && !ignoreEmpty {
-				panic(errors.New(fmt.Sprintf("easyconfig value is empty for key [%s.%s]", viperKey, mapKey)))
+			// 获取默认值
+			if defaultVal, ok := structField.Tag.Lookup(defaultTag); ok {
+				fieldMapVal = defaultVal
+			} else {
+				if !ignoreInvalidFields && !ignoreEmpty {
+					panic(errors.New(fmt.Sprintf("easyconfig value is empty for key [%s.%s]", viperKey, mapKey)))
+				}
+				continue
 			}
-			continue
 		}
 
 		switch rtField.Kind() {
@@ -462,7 +479,7 @@ func (my *properties) doSetConfigBean(configBean any, definition ConfigurationBe
 				newRvField := reflect.New(rtField)
 				rvField.Set(newRvField)
 			}
-			my.doSetConfigBean(rvField, definition, nextMapValue, nextViperKey, ignoreEmpty)
+			my.doSetConfigBean(rvField, definition, nextMapValue, nextViperKey, ignoreEmpty, refresh)
 		default:
 			// nothing to do
 		}
@@ -630,7 +647,7 @@ func (my *properties) defaultWatchHandler(params []WatcherParam, conf2Definition
 		if !ok {
 			continue
 		}
-		my.doSetConfigBean(configBean, definition, mapValue, prefixKey, true)
+		my.doSetConfigBean(configBean, definition, mapValue, prefixKey, true, true)
 		my.log.Debug("config bean [%s] auto refresh success", definition.CompleteName)
 	}
 }

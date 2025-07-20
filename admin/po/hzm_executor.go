@@ -22,6 +22,6 @@ func (my ExecutorRegistryType) ToPtr() *ExecutorRegistryType {
 }
 
 const (
-	AutoRegistry   ExecutorRegistryType = 0 // 自动注册
-	ManualRegistry ExecutorRegistryType = 1 // 手动注册
+	AutoRegistry   ExecutorRegistryType = iota // 自动注册
+	ManualRegistry                             // 手动注册
 )

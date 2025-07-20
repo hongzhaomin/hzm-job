@@ -1,4 +1,3 @@
-
 -- 用户表
 CREATE TABLE `user`
 (
@@ -18,9 +17,11 @@ CREATE TABLE `user`
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY           `idx_username` (`user_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
-INSERT INTO `user` (`user_name`, `password`, `nick_name`, `email`, `head_img`, `sex`, `profession`, `province`, `city`, `county`) VALUES ('15856982413', '1', '煕风', 'test@163.com', '', 1, '程序员', '安徽省', '合肥市', '蜀山区');
+INSERT INTO `user` (`user_name`, `password`, `nick_name`, `email`, `head_img`, `sex`, `profession`, `province`, `city`,
+                    `county`)
+VALUES ('15856982413', '1', '煕风', 'test@163.com', '', 1, '程序员', '安徽省', '合肥市', '蜀山区');
 
 -- 菜单表
 CREATE TABLE `menu`
@@ -39,14 +40,20 @@ CREATE TABLE `menu`
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY           `idx_permtag` (`perm_tag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='菜单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单表';
 
-INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num) VALUES (0, 2, 'sys:manage', '系统管理', '', 'fa fa-th-large', '_self', 30);
-INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num) VALUES (1, 0, 'sys:menu', '菜单管理', '/menu', 'fa fa-window-maximize', '_self', 33);
-INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num) VALUES (1, 0, 'sys:role', '角色管理', '/role', 'fa fa-lock', '_self', 32);
-INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num) VALUES (1, 0, 'sys:user', '用户管理', '/user', 'fa fa-user', '_self', 31);
-INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num) VALUES (0, 2, 'programmer', '码农客栈', '', 'fa fa-laptop', '_self', 1);
-INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num) VALUES (5, 0, 'json:convert', 'Json转换', '/json', 'fa fa-code', '_self', 2);
+INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num)
+VALUES (0, 2, 'sys:manage', '系统管理', '', 'fa fa-th-large', '_self', 30);
+INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num)
+VALUES (1, 0, 'sys:menu', '菜单管理', '/menu', 'fa fa-window-maximize', '_self', 33);
+INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num)
+VALUES (1, 0, 'sys:role', '角色管理', '/role', 'fa fa-lock', '_self', 32);
+INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num)
+VALUES (1, 0, 'sys:user', '用户管理', '/user', 'fa fa-user', '_self', 31);
+INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num)
+VALUES (0, 2, 'programmer', '码农客栈', '', 'fa fa-laptop', '_self', 1);
+INSERT INTO menu (pid, type, perm_tag, title, href, icon, target, order_num)
+VALUES (5, 0, 'json:convert', 'Json转换', '/json', 'fa fa-code', '_self', 2);
 
 -- 角色表
 CREATE TABLE `role`
@@ -59,7 +66,7 @@ CREATE TABLE `role`
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY           `idx_roletag` (`role_tag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='角色表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
 -- 角色菜单关系表
 CREATE TABLE `role_menu`
@@ -72,7 +79,7 @@ CREATE TABLE `role_menu`
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY           `idx_roletag_permtag` (`role_tag`, `perm_tag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='角色菜单关系表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色菜单关系表';
 
 -- 用户角色关系表
 CREATE TABLE `user_role`
@@ -85,7 +92,7 @@ CREATE TABLE `user_role`
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY           `idx_userid_roletag` (`user_id`, `role_tag`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户角色关系表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关系表';
 
 
 -- 执行器表
@@ -99,7 +106,7 @@ CREATE TABLE `hzm_executor`
     `create_time`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4 COMMENT='执行器表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='执行器表';
 
 -- 执行器节点表
 CREATE TABLE `hzm_executor_node`
@@ -113,7 +120,7 @@ CREATE TABLE `hzm_executor_node`
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY           `idx_executorid` (`executor_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4 COMMENT='执行器节点表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='执行器节点表';
 
 -- 任务表
 CREATE TABLE `hzm_job`
@@ -133,4 +140,24 @@ CREATE TABLE `hzm_job`
     `update_time`     datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     KEY               `idx_executorid` (`executor_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4 COMMENT='任务表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务表';
+
+-- 任务日志表
+CREATE TABLE `hzm_job_log`
+(
+    `id`               bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    `job_id`           bigint(20) NOT NULL DEFAULT '0' COMMENT '任务id',
+    `executor_id`      bigint(20) NOT NULL DEFAULT '0' COMMENT '执行器id',
+    `executor_node_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '执行器节点id',
+    `parameters`       varchar(512) NOT NULL DEFAULT '' COMMENT '任务参数',
+    `schedule_time`    datetime              DEFAULT NULL COMMENT '任务调度日志时间',
+    `status`           tinyint(2) NOT NULL DEFAULT '0' COMMENT '任务调度日志状态：0-待调度；1-任务执行中；2-任务结束',
+    `handle_code`      int(11) DEFAULT NULL COMMENT '任务结果编码',
+    `handle_msg`       varchar(512) NOT NULL DEFAULT '' COMMENT '任务结果消息',
+    `finish_time`      datetime              DEFAULT NULL COMMENT '任务完成时间',
+    `valid`            tinyint(2) unsigned NOT NULL DEFAULT '1' COMMENT '是否可用：1-可用；0-不可用',
+    `create_time`      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    KEY                `idx_jobid` (`job_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务日志表';

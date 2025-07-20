@@ -1,6 +1,8 @@
 package service
 
 import (
+	"encoding/json"
+	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global/iface"
 	"github.com/hongzhaomin/hzm-job/admin/po"
 	"math/rand"
@@ -73,7 +75,8 @@ func (my *PollExecutorNodeSelector) NodeSchedule(nodes []*po.HzmExecutorNode, do
 	node := my.nodeSelected(nodes)
 	err := doSchedule(node)
 	if err != nil {
-		// todo 日志：调度失败
+		global.SingletonPool().Log.Error("任务调度失败", "executorId", *node.ExecutorId,
+			"nodeAddress", *node.Address, "err", err)
 		return
 	}
 }
@@ -100,7 +103,8 @@ func (my *RandomExecutorNodeSelector) NodeSchedule(nodes []*po.HzmExecutorNode, 
 	node := nodes[r.Intn(len(nodes))]
 	err := doSchedule(node)
 	if err != nil {
-		// todo 日志：调度失败
+		global.SingletonPool().Log.Error("任务调度失败", "executorId", *node.ExecutorId,
+			"nodeAddress", *node.Address, "err", err)
 		return
 	}
 }
@@ -131,6 +135,9 @@ func (my *ErrNextExecutorNodeSelector) NodeSchedule(nodes []*po.HzmExecutorNode,
 			// 成功则结束
 			return
 		}
-		// todo 日志：第i个失败，重试下一个
+		global.SingletonPool().Log.Error("任务调度失败，故障转移，重试下一个节点", "executorId", *node.ExecutorId,
+			"nodeAddress", *node.Address, "err", err)
 	}
+	marshal, _ := json.Marshal(nodes)
+	global.SingletonPool().Log.Error("任务调度失败，故障转移，所有节点全部失败", "nodes", string(marshal))
 }

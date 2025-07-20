@@ -2,7 +2,10 @@ module github.com/hongzhaomin/hzm-job/client
 
 go 1.24.0
 
-require github.com/hongzhaomin/hzm-job/core v0.0.0-20250705102314-d9dcd2756375
+require (
+	github.com/hongzhaomin/hzm-job/core v0.0.0-20250705102314-d9dcd2756375
+	golang.org/x/net v0.33.0
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.8.0 // indirect

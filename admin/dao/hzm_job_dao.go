@@ -8,7 +8,11 @@ import (
 type HzmJobDao struct{}
 
 func (my *HzmJobDao) Save(job *po.HzmJob) error {
-	return global.SingletonPool().Mysql.Create(job).Error
+	return global.SingletonPool().Mysql.
+		// fixme
+		//Select("").
+		Create(job).
+		Error
 }
 
 func (my *HzmJobDao) FindRunningJobs() ([]*po.HzmJob, error) {

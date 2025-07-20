@@ -22,6 +22,6 @@ func (my NodeStatus) ToPtr() *NodeStatus {
 }
 
 const (
-	NodeOffline NodeStatus = 0 // 离线
-	NodeOnline  NodeStatus = 1 // 在线
+	NodeOffline NodeStatus = iota // 离线
+	NodeOnline                    // 在线
 )

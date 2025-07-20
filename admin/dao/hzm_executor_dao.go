@@ -1,8 +1,10 @@
 package dao
 
 import (
+	"errors"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/po"
+	"gorm.io/gorm"
 )
 
 type HzmExecutorDao struct {
@@ -35,14 +37,37 @@ func (my *HzmExecutorDao) FindById(id int64) (*po.HzmExecutor, error) {
 		return nil, nil
 	}
 
-	var executor *po.HzmExecutor
+	var executor po.HzmExecutor
 	err := global.SingletonPool().Mysql.
 		Where("valid = ? and id = ?", true, id).
 		First(&executor).
 		Error
-	return executor, err
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &executor, err
+}
+
+func (my *HzmExecutorDao) FindByAppKey(appKey string) (*po.HzmExecutor, error) {
+	if appKey == "" {
+		return nil, nil
+	}
+
+	var executor po.HzmExecutor
+	err := global.SingletonPool().Mysql.
+		Where("valid = ? and app_key = ?", true, appKey).
+		First(&executor).
+		Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &executor, err
 }
 
 func (my *HzmExecutorDao) Save(executor *po.HzmExecutor) error {
-	return global.SingletonPool().Mysql.Create(executor).Error
+	return global.SingletonPool().Mysql.
+		// fixme
+		//Select("").
+		Create(executor).
+		Error
 }

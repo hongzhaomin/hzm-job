@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const hzmJobAccessToken = "hzm-job-access-token"
-
 type RemotingUtil struct {
 	client   *http.Client
 	maxRetry int
@@ -44,9 +42,10 @@ func WithMaxRetry(maxRetry int) Option {
 
 func (h *RemotingUtil) PostJSON(ctx context.Context, url, accessToken string, body any) ([]byte, error) {
 	method := http.MethodPost
+
 	headers := map[string]string{
-		"Content-Type":    "application/json",
-		hzmJobAccessToken: accessToken,
+		"Content-Type": "application/json",
+		TokenHeaderKey: accessToken,
 	}
 
 	var b io.Reader

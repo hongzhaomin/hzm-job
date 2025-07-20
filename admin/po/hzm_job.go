@@ -18,23 +18,23 @@ type HzmJob struct {
 type JobScheduleType byte
 
 const (
-	JobCron    JobScheduleType = 1 // cron表达式
-	JobSipCron JobScheduleType = 2 // 极简表达式
+	JobCron    JobScheduleType = iota + 1 // cron表达式
+	JobSipCron                            // 极简表达式
 )
 
 // JobStatus 任务状态枚举
 type JobStatus byte
 
 const (
-	JobStop    JobStatus = 0 // 未启动
-	JobRunning JobStatus = 1 // 已启动
+	JobStop    JobStatus = iota // 未启动
+	JobRunning                  // 已启动
 )
 
 // JobRouterStrategy 任务路由策略枚举
 type JobRouterStrategy byte
 
 const (
-	JobPoll    JobRouterStrategy = 0 // 轮询
-	JobRandom  JobRouterStrategy = 1 // 随机
-	JobErrNext JobRouterStrategy = 2 // 故障转移
+	JobPoll    JobRouterStrategy = iota // 轮询
+	JobRandom                           // 随机
+	JobErrNext                          // 故障转移
 )

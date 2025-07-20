@@ -9,10 +9,18 @@ type JobClientApi interface {
 
 	// JobHandle 任务处理接口
 	JobHandle(req *JobHandleReq)
+
+	// CancelJob 任务终止接口
+	CancelJob(req *JobCancelReq)
 }
 
 type JobHandleReq struct {
+	LogId     *int64  `json:"logId,omitempty"`     // 本次调度日志id
 	JobId     *int64  `json:"jobId,omitempty"`     // 任务id
 	JobName   *string `json:"jobName,omitempty"`   // 任务名称
 	JobParams *string `json:"jobParams,omitempty"` // 任务参数
+}
+
+type JobCancelReq struct {
+	LogId *int64 `json:"logId,omitempty"` // 需要取消的调度日志id
 }

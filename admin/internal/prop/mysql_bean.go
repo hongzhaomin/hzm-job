@@ -1,10 +1,10 @@
-package properties
+package prop
 
 import "github.com/hongzhaomin/hzm-job/core/ezconfig"
 
 // MysqlProperties mysql配置文件结构体
 type MysqlProperties struct {
-	ezconfig.ConfigurationProperties `prefix:"hzm.job.mysql"`
+	ezconfig.ConfigurationProperties `prefix:"hzm.job.admin.mysql"`
 
 	Host     string // 域名
 	Port     int    // 端口

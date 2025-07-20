@@ -1,17 +1,29 @@
 hzm:
   job:
-#    mysql:
-#      host: 1.13.249.160
-#      port: 3306
-#      username: root
-#      password: kTICUG4OV3XKLvCb
-#      dbname: yunlingdemo
-    mysql:
-      host: localhost
-      port: 3306
-      username: root
-      password: hzm2mnoto4_
-      dbname: webapp-easy-office
+    admin:
+      port: 8888
+      mysql:
+#        host: 1.13.249.160
+#        port: 3306
+#        username: root
+#        password: kTICUG4OV3XKLvCb
+#        dbname: yunlingdemo
+        host: 47.97.27.112
+        port: 3306
+        username: root
+        password: LurebTGlernkAF3p
+        dbname: gva-asr
+#      mysql:
+#        host: localhost
+#        port: 3306
+#        username: root
+#        password: hzm2mnoto4_
+#        dbname: webapp-easy-office
 
-    config:
+    # 通用配置
+    common:
       accessToken: 123456
+      # 日志配置
+      log:
+        level: info
+        type: json

@@ -1,0 +1,16 @@
+hzm:
+  job:
+    # 执行器客户端配置
+    client:
+      port: 7777
+      adminAddress: http://localhost:8888
+      appKey: test
+#      localhost: 192.168.5.125
+
+    # 通用配置
+    common:
+      accessToken: 123456
+      # 日志配置
+      log:
+        level: debug
+        type: json
