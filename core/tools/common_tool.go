@@ -15,6 +15,27 @@ func GetIds4Slice[S ~[]E, E any](list S, fn func(E) int64) []int64 {
 	return ids
 }
 
+// GetIds4DistinctSlice 切片获取ids（去重后）
+func GetIds4DistinctSlice[S ~[]E, E any](list S, fn func(E) *int64) []int64 {
+	if len(list) <= 0 {
+		return nil
+	}
+
+	idMap := make(map[int64]struct{}, len(list))
+	var ids []int64
+	for _, ele := range list {
+		id := fn(ele)
+		if id == nil {
+			continue
+		}
+		if _, ok := idMap[*id]; !ok {
+			idMap[*id] = struct{}{}
+			ids = append(ids, *id)
+		}
+	}
+	return ids
+}
+
 func FindAnnotationValueByType(target, annotationBean any, tagName string) (string, bool) {
 	targetType := reflect.TypeOf(target)
 	if targetType.Kind() == reflect.Ptr {

@@ -14,11 +14,11 @@ func (my *SimpleCron) GetDesc() string {
 
 func Values() []SimpleCron {
 	return []SimpleCron{
-		Yearly,
-		Monthly,
-		Weekly,
-		Daily,
 		Hourly,
+		Daily,
+		Weekly,
+		Monthly,
+		Yearly,
 	}
 }
 

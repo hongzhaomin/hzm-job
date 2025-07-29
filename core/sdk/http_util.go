@@ -48,17 +48,22 @@ func (h *RemotingUtil) PostJSON(ctx context.Context, url, accessToken string, bo
 		TokenHeaderKey: accessToken,
 	}
 
-	var b io.Reader
-	if body != nil {
-		jsonData, _ := json.Marshal(body)
-		b = bytes.NewBuffer(jsonData)
-	}
-	return h.doRequest(ctx, method, url, b, headers)
+	return h.doRequest(ctx, method, url, body, headers)
 }
 
-func (h *RemotingUtil) doRequest(ctx context.Context, method string, url string, body io.Reader, headers map[string]string) ([]byte, error) {
+func (h *RemotingUtil) doRequest(ctx context.Context, method string, url string, reqParam any, headers map[string]string) ([]byte, error) {
 	var lastErr error
+	var body io.Reader
 	for i := 0; i <= h.maxRetry; i++ {
+		if reqParam != nil {
+			jsonData, err := json.Marshal(reqParam)
+			if err != nil {
+				lastErr = fmt.Errorf("HTTP param json marshal error: %v", err)
+				continue
+			}
+			body = bytes.NewBuffer(jsonData)
+		}
+
 		req, _ := http.NewRequestWithContext(ctx, method, url, body)
 		for k, v := range headers {
 			req.Header.Set(k, v)

@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"errors"
-	"fmt"
 	"github.com/hongzhaomin/hzm-job/client/internal/anno"
 	"github.com/hongzhaomin/hzm-job/client/internal/global"
 	"github.com/hongzhaomin/hzm-job/core/tools"
@@ -35,7 +33,7 @@ func (my *JobRegister) GetJob(jobName string) anno.Job {
 	job, ok := my.jobMap[jobName]
 	if !ok {
 		global.SingletonPool().Log.Error("job is not exist", "jobName", jobName)
-		panic(errors.New(fmt.Sprintf("job is not exist: [%s]", jobName)))
+		return nil
 	}
 	return job
 }

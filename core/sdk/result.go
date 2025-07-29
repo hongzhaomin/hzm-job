@@ -12,6 +12,7 @@ type Result[T any] struct {
 	Msg     *string `json:"msg"`
 	Data    *T      `json:"data"`
 	Success bool    `json:"success"`
+	Count   *int64  `json:"count"`
 }
 
 func Ok() Result[any] {
@@ -27,14 +28,22 @@ func Ok2[T any](data T) Result[T] {
 	return *rb
 }
 
-func Fail[T any](msg string) Result[T] {
-	rb := new(Result[T])
+func Ok4Page[T any](count int64, data []*T) Result[[]*T] {
+	rb := new(Result[[]*T])
+	rb.ok()
+	rb.Count = &count
+	rb.Data = &data
+	return *rb
+}
+
+func Fail(msg string) Result[any] {
+	rb := new(Result[any])
 	rb.fail(msg)
 	return *rb
 }
 
-func Fail2[T any](code int, msg string) Result[T] {
-	rb := new(Result[T])
+func Fail2(code int, msg string) Result[any] {
+	rb := new(Result[any])
 	rb.fail(msg)
 	rb.Code = &code
 	return *rb

@@ -20,11 +20,12 @@ type JobServerOpenApi struct {
 }
 
 // Registry 客户端注册接口
+// @Post /api/admin/registry
 func (my *JobServerOpenApi) Registry(ctx *gin.Context) {
 	var req api.RegistryReq
 	if err := ctx.ShouldBind(&req); err != nil && !errors.Is(err, io.EOF) {
 		global.SingletonPool().Log.Error("客户端注册失败", "err", err.Error())
-		ctx.JSON(http.StatusOK, sdk.Fail[any](err.Error()))
+		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
 
@@ -34,11 +35,12 @@ func (my *JobServerOpenApi) Registry(ctx *gin.Context) {
 }
 
 // Offline 客户端下线接口
+// @Post /api/admin/offline
 func (my *JobServerOpenApi) Offline(ctx *gin.Context) {
 	var req api.RegistryReq
 	if err := ctx.ShouldBind(&req); err != nil && !errors.Is(err, io.EOF) {
 		global.SingletonPool().Log.Error("客户端下线失败", "err", err.Error())
-		ctx.JSON(http.StatusOK, sdk.Fail[any](err.Error()))
+		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
 
@@ -49,11 +51,12 @@ func (my *JobServerOpenApi) Offline(ctx *gin.Context) {
 }
 
 // Callback 回调接口
+// @Post /api/admin/callback
 func (my *JobServerOpenApi) Callback(ctx *gin.Context) {
 	var req api.JobResultReq
 	if err := ctx.ShouldBind(&req); err != nil && !errors.Is(err, io.EOF) {
 		global.SingletonPool().Log.Error("任务完成回调失败", "err", err.Error())
-		ctx.JSON(http.StatusOK, sdk.Fail[any](err.Error()))
+		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
 

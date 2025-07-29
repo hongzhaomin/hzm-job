@@ -13,7 +13,7 @@ type CronFuncRegister interface {
 	RegistryJobs()
 
 	// WrapperRegistryJobFunc 封装注册任务函数
-	WrapperRegistryJobFunc(job *po.HzmJob, jobParameters *string)
+	WrapperRegistryJobFunc(job *po.HzmJob, executorNodeId *int64)
 }
 
 // ExecutorNodeSelector 执行器节点选择器接口

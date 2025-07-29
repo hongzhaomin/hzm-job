@@ -4,11 +4,11 @@ import (
 	"errors"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/po"
+	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"gorm.io/gorm"
 )
 
-type HzmExecutorDao struct {
-}
+type HzmExecutorDao struct{}
 
 func (my *HzmExecutorDao) FindAll() ([]*po.HzmExecutor, error) {
 	var executors []*po.HzmExecutor
@@ -66,8 +66,46 @@ func (my *HzmExecutorDao) FindByAppKey(appKey string) (*po.HzmExecutor, error) {
 
 func (my *HzmExecutorDao) Save(executor *po.HzmExecutor) error {
 	return global.SingletonPool().Mysql.
-		// fixme
-		//Select("").
+		Select("Name", "AppKey", "RegistryType").
 		Create(executor).
+		Error
+}
+
+func (my *HzmExecutorDao) Page(param req.ExecutorPage) (int64, []*po.HzmExecutor, error) {
+	// 构造条件
+	db := global.SingletonPool().Mysql
+	db = db.Where("valid = ?", 1)
+	if param.Name != "" {
+		db = db.Where("name LIKE ?", "%"+param.Name+"%")
+	}
+	if param.AppKey != "" {
+		db = db.Where("app_key = ?", param.AppKey)
+	}
+
+	var count int64
+	db.Model(po.HzmExecutor{}).Count(&count)
+	if count == 0 {
+		return 0, nil, nil
+	}
+
+	var executors []*po.HzmExecutor
+	err := db.Offset(param.Start()).Limit(param.Limit()).Find(&executors).Error
+	return count, executors, err
+}
+
+func (my *HzmExecutorDao) Update(executor *po.HzmExecutor) error {
+	return global.SingletonPool().Mysql.
+		Save(executor).
+		Error
+}
+
+func (my *HzmExecutorDao) LogicDeleteBatch(ids []int64) error {
+	if len(ids) <= 0 {
+		return nil
+	}
+	return global.SingletonPool().Mysql.
+		Model(&po.HzmExecutor{}).
+		Where("valid = 1 and id in (?)", ids).
+		Update("valid", false).
 		Error
 }

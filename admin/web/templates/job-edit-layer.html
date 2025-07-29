@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/layui-mini/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../static/layui-mini/css/public.css" media="all">
+    <link rel="stylesheet" href="../static/css/common.css" media="all">
+    <link rel="stylesheet" href="../static/layui-mini/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+        <div class="layui-form layuimini-form">
+
+            <!-- 隐藏元素，接收id -->
+            <input type="hidden" name="id" value=""/>
+
+            <!-- 基本配置 -->
+            <fieldset class="layui-border-green">
+                <legend>基本配置</legend>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label required-tag">执行器</label>
+                        <div class="layui-input-inline">
+                            <select name="executorId" lay-search="">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label required-tag">任务描述</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="description" class="layui-input" lay-verify="required"
+                                   lay-reqtext="任务描述不能为空">
+                        </div>
+                    </div>
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label required-tag">负责人</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="head" class="layui-input" lay-verify="required"
+                                   lay-reqtext="负责人不能为空">
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 调度配置 -->
+            <fieldset class="layui-border-green">
+                <legend>调度配置</legend>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label required-tag">调度类型</label>
+                        <div class="layui-input-inline">
+                            <select name="scheduleType" lay-filter="changeScheduleTypeFilter">
+                                <option value="1">Cron</option>
+                                <option value="2">SimpleCron</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <!-- cron表达式-->
+                        <div id="cronDiv">
+                            <label class="layui-form-label required-tag">cron表达式</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" id="cronVal" value="" name="scheduleValue"/>
+                            </div>
+                            <button id="openCron" type="button" class="layui-btn layui-btn-sm layui-inline"
+                                    style="margin-top: 4px">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                        </div>
+                        <!-- 极简表达式-->
+                        <div id="simpleCronDiv" style="display: none">
+                            <div class="layui-inline">
+                                <label class="layui-form-label required-tag">极简表达式</label>
+                                <div class="layui-input-inline">
+                                    <div class="layui-input-inline">
+                                        <select name="simpleScheduleValue" lay-search="">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 任务配置 -->
+            <fieldset class="layui-border-green">
+                <legend>任务配置</legend>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label required-tag">任务名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="name" lay-verify="required" lay-reqtext="任务名称不能为空"
+                                   placeholder="请输入任务名称" value="" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label required-tag">路由策略</label>
+                        <div class="layui-input-inline">
+                            <select name="routerStrategy">
+                                <option value="0">轮询</option>
+                                <option value="1">随机</option>
+                                <option value="2">故障转移</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">任务参数</label>
+                    <div class="layui-input-block">
+                        <textarea name="parameters" placeholder="请输入任务参数" value=""
+                                  class="layui-textarea"></textarea>
+                    </div>
+                </div>
+            </fieldset>
+
+            <button id="submitBtn" style="display: none" class="layui-btn" lay-submit lay-filter="saveBtn">
+                确认保存
+            </button>
+        </div>
+    </div>
+</div>
+<script src="../static/layui-mini/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+<script src="../static/layui-mini/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
+<script>
+    layui.use(['loginCheck', 'form', 'cron'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            cron = layui.cron,
+            $ = layui.$;
+
+        // 定义初始化方法，给父页面调用，达到传递数据的目的
+        window.initJobEditLayer = function (params) {
+            $('input[name="id"]').val(params.id);
+            $('select[name="executorId"]').val(params.executorId);
+            $('input[name="description"]').val(params.description);
+            $('input[name="head"]').val(params.head);
+            $('select[name="scheduleType"]').val(params.scheduleType);
+            if (parseInt(params.scheduleType) === 1) {
+                // cron
+                $('input[name="scheduleValue"]').val(params.scheduleValue);
+            } else if (parseInt(params.scheduleType) === 2) {
+                // simple cron
+                $('select[name="simpleScheduleValue"]').val(params.scheduleValue);
+            }
+            $('input[name="name"]').val(params.name);
+            $('select[name="routerStrategy"]').val(params.routerStrategy);
+            $('textarea[name="parameters"]').val(params.parameters);
+            scheduleTypeSelectChanged(params.scheduleType);
+            form.render('select');
+        }
+
+        // 初始化执行器下拉框
+        $.getJSON('/admin/executor/select-box', function (res) {
+            if (res.success) {
+                let optionsHtml = '';
+                if (res.data) {
+                    for (let item of res.data) {
+                        optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                    }
+                }
+                $('select[name="executorId"]').append(optionsHtml);
+                // 重新渲染下拉框
+                form.render('select');
+            }
+        });
+
+        // 初始化极简表达式下拉框
+        $.getJSON('/admin/job/simple-cron/select-box', function (res) {
+            if (res.success) {
+                let optionsHtml = '';
+                if (res.data) {
+                    for (let item of res.data) {
+                        optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                    }
+                }
+                $('select[name="simpleScheduleValue"]').append(optionsHtml);
+                // 重新渲染下拉框
+                form.render('select');
+            }
+        });
+
+        // 监听select下拉选择事件
+        form.on('select(changeScheduleTypeFilter)', function (data) {
+            // console.log(data.elem); //得到select原始DOM对象
+            // console.log(data.value); //得到被选中的值
+            // console.log(data.othis); //得到美化后的DOM对象
+            scheduleTypeSelectChanged(data.value);
+        });
+
+        function scheduleTypeSelectChanged(scheduleType) {
+            scheduleType = parseInt(scheduleType)
+            let cronDiv = document.getElementById('cronDiv');
+            let simpleCronDiv = document.getElementById('simpleCronDiv');
+            if (scheduleType === 1) {
+                // cron
+                cronDiv.style.display = 'block';
+                simpleCronDiv.style.display = 'none';
+            } else if (scheduleType === 2) {
+                // simple cron
+                cronDiv.style.display = 'none';
+                simpleCronDiv.style.display = 'block';
+            }
+        }
+
+        // 渲染cron选择器
+        cron.render({
+            elem: '#openCron',
+            value: function () {
+                return $('#cronVal').val();
+            },
+            done: function (value, cron) {
+                $('#cronVal').val(value);
+            }
+        });
+
+        // 定义方法，给父页面调用
+        window.editJobSubmit = function (index) {
+            $('#submitBtn').click();
+            // parent.layer.close(index);
+        }
+
+        // 监听提交
+        form.on('submit(saveBtn)', function (data) {
+            const {executorId, scheduleType, routerStrategy, simpleScheduleValue} = data.field;
+            let field = data.field;
+            field.simpleScheduleValue = undefined;
+            field.executorId = parseInt(executorId)
+            field.scheduleType = parseInt(scheduleType)
+            field.routerStrategy = parseInt(routerStrategy)
+            if (parseInt(scheduleType) === 2) {
+                // 极简表达式
+                field.scheduleValue = simpleScheduleValue;
+            }
+            if (!field.scheduleValue) {
+                layer.msg('表达式不能为空', {icon: 5, time: 1000});
+                return false;
+            }
+
+            $.post('/admin/job/edit', field, function (res) {
+                if (res.success) {
+                    let index = layer.msg('任务编辑成功', {icon: 6, time: 500}, function () {
+                        // 关闭弹出层
+                        layer.close(index);
+
+                        let iframeIndex = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(iframeIndex);
+                    });
+                } else {
+                    layer.msg(res.msg, {icon: 5, time: 1000});
+                }
+            }, 'json');
+            return false;
+        });
+
+    });
+</script>
+</body>
+</html>

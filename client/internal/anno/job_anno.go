@@ -38,6 +38,9 @@ func CallDoHandle(job Job, ctx context.Context, params *string) (err error) {
 			}
 		}
 	}()
+	if job == nil {
+		return errors.New(fmt.Sprintf("job is not exist"))
+	}
 	rvJob := reflect.ValueOf(job)
 	rvParam := rvJob.MethodByName("ParseParam").Call([]reflect.Value{reflect.ValueOf(params)})[0]
 	rvResult := rvJob.MethodByName("DoHandle").Call([]reflect.Value{reflect.ValueOf(ctx), rvParam})

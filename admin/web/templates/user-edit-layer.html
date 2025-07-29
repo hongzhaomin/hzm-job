@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/layui-mini/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../static/layui-mini/css/public.css" media="all">
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-form layuimini-form">
+    <input type="hidden" name="id" value=""/>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">账号</label>
+        <div class="layui-input-block">
+            <input type="text" name="userName" lay-verify="required" lay-reqtext="账号不能为空" placeholder="请输入账号"
+                   value="" class="layui-input">
+            <tip>填写自己管理账号的名称。</tip>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">密码</label>
+        <div class="layui-input-block">
+            <input type="text" name="password" placeholder="请输入新密码，为空则不修改密码"
+                   value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">邮箱</label>
+        <div class="layui-input-block">
+            <input type="email" name="email" placeholder="请输入邮箱" value="" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label required">角色</label>
+        <div class="layui-input-block">
+            <input id="commonRole" type="radio" name="role" value="1" title="普通用户" lay-filter="roleFilter">
+            <input id="adminRole" type="radio" name="role" value="0" title="管理员" checked="" lay-filter="roleFilter">
+        </div>
+    </div>
+    <div id="dataPermsDiv" class="layui-form-item">
+        <label class="layui-form-label">权限</label>
+        <div class="layui-input-block">
+            <div class="parentBox">
+                <div id="userDataPermsTransfer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="saveBtn">确认保存</button>
+        </div>
+    </div>
+</div>
+<script src="../static/layui-mini/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+<script src="../static/layui-mini/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
+<script>
+    layui.use(['loginCheck', 'form', 'transfer'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            transfer = layui.transfer,
+            $ = layui.$;
+
+        let role = 0;
+        let data = []; // 穿梭框源数据，即所有数据
+        let value = []; // 穿梭框右边数据，即选中数据
+        // 定义初始化方法，给父页面调用，达到传递数据的目的
+        window.initUserEditLayer = function (params) {
+            let div = document.getElementById('dataPermsDiv');
+            $('input[name="id"]').val(params.id);
+            $('input[name="userName"]').val(params.userName);
+            $('input[name="email"]').val(params.email);
+            role = params.role;
+            if (params.role === 0) {
+                $('#adminRole').attr('checked', true);
+                div.style.display = 'none';
+            } else if (params.role === 1) {
+                $('#commonRole').attr('checked', true);
+                div.style.display = 'block';
+                // 查询用户以配置权限的数据
+                $.getJSON('/admin/user/data-perms/by-userid', {userId: params.id}, function (res) {
+                    if (res.success) {
+                        data = res.data.allDataPerms;
+                        if (res.data.selectedDataPerms) {
+                            value = res.data.selectedDataPerms.map(v => v.value);
+                        }
+                        // 渲染
+                        renderTransfer()
+                    } else {
+                        layer.msg(res.msg, {icon: 5, time: 1000});
+                    }
+                });
+            }
+            form.render('radio');
+        }
+
+        // 监听单选框切换
+        form.on('radio(roleFilter)', function (dataEle) {
+            let title = dataEle.othis[0].innerText;
+            let div = document.getElementById('dataPermsDiv');
+            if (title.includes('管理员')) {
+                role = 0;
+                div.style.display = 'none';
+            } else {
+                role = 1;
+                div.style.display = 'block';
+                // 查询所有可选数据
+                $.getJSON('/admin/user/data-perms/all', function (res) {
+                    if (res.success) {
+                        data = res.data;
+                        // 渲染
+                        renderTransfer()
+                    } else {
+                        layer.msg(res.msg, {icon: 5, time: 1000});
+                    }
+                });
+            }
+        });
+
+        // 监听提交
+        form.on('submit(saveBtn)', function (formData) {
+            let field = formData.field;
+            field.role = role;
+            field.dataPerms = data.filter(v => value.includes(v.value))
+            field.id = parseInt(field.id)
+            $.ajax({
+                url: '/admin/user/edit',
+                type: "post",
+                data: JSON.stringify(field),
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                success: function (res) {
+                    if (res.success) {
+                        let index = layer.msg('用户修改成功', {icon: 6, time: 500}, function () {
+                            // 关闭弹出层
+                            layer.close(index);
+
+                            let iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex);
+                        });
+                    } else {
+                        layer.msg(res.msg, {icon: 5, time: 1000});
+                    }
+                }
+            });
+            return false;
+        });
+
+        // 穿梭框渲染
+        function renderTransfer() {
+            transfer.render({
+                elem: '#userDataPermsTransfer',  // 绑定元素
+                title: ['未配置数据', '已配置数据'],
+                data: data,
+                value: value,
+                width: 200,
+                height: 500,
+                id: 'userDataPermsTransfer', // 定义索引
+
+                // 左右穿梭的回调
+                // 如果数据来自左边，index 为 0，否则为 1
+                onchange: function (data, index) {
+                    value = transfer.getData('userDataPermsTransfer').map(v => v.value);
+                }
+            });
+        }
+
+    });
+</script>
+</body>
+</html>

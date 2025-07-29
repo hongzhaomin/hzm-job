@@ -45,7 +45,7 @@ func Post[T any](param sdk.Param[T]) (*T, error) {
 	client := global.SingletonPool().RemotingUtil
 	jsonStr, err := client.PostJSON(ctx, url, param.GetAccessToken(), param)
 	if err != nil {
-		global.SingletonPool().Log.Error("请求http异常", "url", url, "err", err)
+		global.SingletonPool().Log.Error("请求http失败", "url", url, "err", err)
 		return nil, err
 	}
 

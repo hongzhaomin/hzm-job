@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>轻松办公</title>
+    <title>hzm-job</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -59,23 +59,18 @@
                 <li class="layui-nav-item" lay-unselect>
                     <a href="javascript:;" data-refresh="刷新"><i class="fa fa-refresh"></i></a>
                 </li>
-                <li class="layui-nav-item" lay-unselect>
-                    <a href="javascript:;" data-clear="清理" class="layuimini-clear"><i class="fa fa-trash-o"></i></a>
-                </li>
+<!--                <li class="layui-nav-item" lay-unselect>-->
+<!--                    <a href="javascript:;" data-clear="清理" class="layuimini-clear"><i class="fa fa-trash-o"></i></a>-->
+<!--                </li>-->
                 <li class="layui-nav-item mobile layui-hide-xs" lay-unselect>
                     <a href="javascript:;" data-check-screen="full"><i class="fa fa-arrows-alt"></i></a>
                 </li>
                 <li class="layui-nav-item layuimini-setting">
-                    <a id="loginUserNickName" href="javascript:;"></a>
+                    <a id="loginUserName" href="javascript:;"></a>
                     <dl class="layui-nav-child">
                         <dd>
-                            <a href="javascript:;" layuimini-content-href="/user-setting" data-title="基本资料" data-icon="fa fa-gears">基本资料<span class="layui-badge-dot"></span></a>
-                        </dd>
-                        <dd>
-                            <a href="javascript:;" layuimini-content-href="/user-password" data-title="修改密码" data-icon="fa fa-gears">修改密码</a>
-                        </dd>
-                        <dd>
-                            <hr>
+                            <a href="javascript:;" layuimini-content-href="/user-password" data-title="修改密码"
+                               data-icon="fa fa-gears">修改密码</a>
                         </dd>
                         <dd>
                             <a href="javascript:;" class="login-out">退出登录</a>
@@ -136,23 +131,23 @@
 <script src="../static/layui-mini/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
 <script src="../static/layui-mini/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
 <script>
-    layui.use(['jquery', 'layer', 'miniAdmin','miniTongji', 'loginCheck'], function () {
+    layui.use(['jquery', 'layer', 'miniAdmin', 'miniTongji', 'loginCheck'], function () {
         let $ = layui.jquery,
             layer = layui.layer,
             miniAdmin = layui.miniAdmin,
             miniTongji = layui.miniTongji;
 
         // 获取当前登录用户信息
-        $.getJSON('/user/current', function (res) {
+        $.getJSON('/admin/user/current', function (res) {
             if (res.success) {
                 let userInfo = res.data;
-                $('#loginUserNickName').text(userInfo.nickName);
+                $('#loginUserName').text(userInfo.userName);
             }
         });
 
         let options = {
             // iniUrl: "../static/layui-mini/api/init.json",    // 初始化接口
-            iniUrl: "/menu/init",    // 初始化接口
+            iniUrl: "/admin/menu/init",    // 初始化接口
             clearUrl: "../static/layui-mini/api/clear.json", // 缓存清理接口
             urlHashLocation: true,      // 是否打开hash定位
             bgColorDefault: false,      // 主题默认配置
@@ -175,7 +170,7 @@
         });
 
         $('.login-out').on("click", function () {
-            $.post('/login-out', function (res) {
+            $.post('/admin/login-out', function (res) {
                 if (res.success) {
                     localStorage.removeItem('accessToken');
                     localStorage.removeItem('userId');

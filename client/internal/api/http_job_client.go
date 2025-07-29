@@ -42,6 +42,14 @@ func (my *HttpJobClient) JobHandle(req *JobHandleReq) {
 	// 将任务日志与取消上下文绑定存储
 	global.SingletonPool().JobCancelCtx.Put(req.LogId, cancel)
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				jobParams, _ := json.Marshal(req)
+				global.SingletonPool().Log.Error("[hzm-job]任务回调异常",
+					"jobParams", string(jobParams),
+					"err", err)
+			}
+		}()
 		defer global.SingletonPool().JobCancelCtx.CancelAndRemove(req.LogId)
 		jobHandler := internal.DefaultJobRegister().GetJob(*jobName)
 		jobExeErr := anno.CallDoHandle(jobHandler, ctx, req.JobParams)
@@ -163,11 +171,16 @@ func commonHandlerFun[P any](res http.ResponseWriter, req *http.Request, fn func
 		return
 	}
 
+	paramJson, _ := json.Marshal(param)
+	global.SingletonPool().Log.Info("http serve request",
+		"url", req.URL.String(),
+		"param", string(paramJson))
+
 	data, err := fn(param)
 	res.WriteHeader(http.StatusOK)
 	res.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		_ = json.NewEncoder(res).Encode(sdk.Fail[any](err.Error()))
+		_ = json.NewEncoder(res).Encode(sdk.Fail(err.Error()))
 	} else {
 		_ = json.NewEncoder(res).Encode(sdk.Ok2[any](data))
 	}

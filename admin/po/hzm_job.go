@@ -12,6 +12,7 @@ type HzmJob struct {
 	Head           *string // 负责人
 	Status         *byte   // 任务状态：0-未启动；1-已启动
 	RouterStrategy *byte   // 路由策略：0-轮询；1-随机；2-故障转移
+	CronEntryId    *int    // 注册到cron中的id
 }
 
 // JobScheduleType 任务调度类型枚举
@@ -24,6 +25,16 @@ const (
 
 // JobStatus 任务状态枚举
 type JobStatus byte
+
+func (my JobStatus) Is(status *byte) bool {
+	return my == JobStatus(*status)
+}
+
+func (my JobStatus) ToPtr() *JobStatus {
+	p := new(JobStatus)
+	*p = my
+	return p
+}
 
 const (
 	JobStop    JobStatus = iota // 未启动

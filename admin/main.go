@@ -25,8 +25,8 @@ var (
 )
 
 func main() {
-	logger := global.SingletonPool().Log
-	logger.Debug("初始化注册任务", "file", *filePath)
+	log := global.SingletonPool().Log
+	log.Debug("初始化注册任务", "file", *filePath)
 	// 注册所有任务
 	cronRegister := global.SingletonPool().CronFuncRegister
 	cronRegister.RegistryHeatBeatFunc()
@@ -64,6 +64,7 @@ func init() {
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true, // use singular table name, table for `User` would be `user` with this option enabled
 		},
+		//Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		panic(err)

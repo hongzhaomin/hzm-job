@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/layui-mini/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../static/layui-mini/css/public.css" media="all">
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-form layuimini-form">
+    <div class="layui-form">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">清理策略</label>
+            <div class="layui-input-block">
+                <select name="clearType">
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">执行器</label>
+            <div class="layui-input-block">
+                <select name="executorId" lay-search="" lay-filter="changeExecutorIdFilter">
+                    <option value="">全部</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务</label>
+            <div class="layui-input-block">
+                <select name="jobId" lay-search="">
+                    <option value="">全部</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <button id="submitBtn" class="layui-btn" style="display: none" lay-submit lay-filter="saveBtn">确认</button>
+</div>
+<script src="../static/layui-mini/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+<script src="../static/layui-mini/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
+<script>
+    layui.use(['loginCheck', 'form'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            $ = layui.$;
+
+        // 定义初始化方法，给父页面调用，达到传递数据的目的
+        window.initLogClearLayer = function (params) {
+            renderExecutorSelect(params.executorId, params.jobId);
+        }
+
+        // 定义提交方法，给父页面调用
+        window.logClearSubmit = function (index) {
+            $('#submitBtn').click();
+            // parent.layer.close(index);
+        }
+
+        // 定义初始化执行器下拉框方法
+        function renderExecutorSelect(executorId, jobId) {
+            $.getJSON('/admin/executor/select-box', function (res) {
+                if (res.success) {
+                    let optionsHtml = '';
+                    if (res.data) {
+                        for (let item of res.data) {
+                            optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                        }
+                    }
+                    let executorIdSelect = $('select[name="executorId"]').append(optionsHtml);
+                    // 重新渲染下拉框
+                    form.render('select');
+
+                    if (executorId) {
+                        executorIdSelect.val(parseInt(executorId));
+                        renderJobSelect(executorId, jobId);
+                    }
+                }
+            });
+        }
+
+        // 定义渲染任务下拉框方法
+        function renderJobSelect(executorId, jobId) {
+            $.getJSON('/admin/job/select-box', {executorId: executorId ? parseInt(executorId) : undefined}, function (res) {
+                if (res.success) {
+                    let optionsHtml = '<option value="">全部</option>';
+                    if (res.data) {
+                        for (let item of res.data) {
+                            optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                        }
+                    }
+                    let jobIdSelect = $('select[name="jobId"]').empty().append(optionsHtml);
+
+                    let containsJobId = jobId ? res.data.map(v => v.value).includes(parseInt(jobId)) : false;
+                    if (jobId && containsJobId) {
+                        jobId = parseInt(jobId);
+                        jobIdSelect.val(jobId);
+                    }
+
+                    // 重新渲染下拉框
+                    form.render('select');
+                }
+            });
+        }
+
+        // 渲染日志清理策略下拉框方法
+        $.getJSON('/admin/log/clear-type/select-box', function (res) {
+            if (res.success) {
+                let optionsHtml = '';
+                if (res.data) {
+                    for (let item of res.data) {
+                        optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                    }
+                }
+                $('select[name="clearType"]').append(optionsHtml);
+                // 重新渲染下拉框
+                form.render('select');
+            }
+        });
+
+        // 监听执行器下拉选择事件
+        form.on('select(changeExecutorIdFilter)', function (data) {
+            // console.log(data.elem); //得到select原始DOM对象
+            // console.log(data.value); //得到被选中的值
+            // console.log(data.othis); //得到美化后的DOM对象
+            if (data.value) {
+                renderJobSelect(parseInt(data.value));
+            } else {
+                $('select[name="jobId"]').empty().append('<option value="">全部</option>');
+                // 重新渲染下拉框
+                form.render('select');
+            }
+        });
+
+        // 监听提交
+        form.on('submit(saveBtn)', function (data) {
+            let field = data.field;
+            let formData = {}
+            if (field.executorId) {
+                formData.executorId = parseInt(field.executorId);
+            }
+            if (field.jobId) {
+                formData.jobId = parseInt(field.jobId);
+            }
+            if (field.clearType) {
+                formData.clearType = parseInt(field.clearType);
+            }
+            deleteLogs(formData);
+            return false;
+        });
+
+        function deleteLogs(formData) {
+            $.ajax({
+                url: '/admin/log/del',
+                type: "post",
+                data: JSON.stringify(formData),
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                success: function (res) {
+                    if (res.success) {
+                        let index = layer.msg('日志清理成功', {icon: 6, time: 1000}, function () {
+                            // 关闭弹出层
+                            layer.close(index);
+
+                            let iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex);
+                        });
+                    } else {
+                        layer.msg(res.msg, {icon: 5, time: 1000});
+                    }
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

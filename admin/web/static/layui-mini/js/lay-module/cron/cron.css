@@ -1,0 +1,268 @@
+/**
+ * 现代化Cron表达式生成器样式
+ * @author: Your Name
+ * @license: MIT
+ */
+
+/* 样式加载完毕的标识 */
+html #layuicss-modern-cron {
+    display: none;
+    position: absolute;
+}
+
+/* 主体结构 */
+.layui-modern-cron {
+    position: absolute;
+    z-index: 1000;
+    margin: 10px 0;
+    border-radius: 12px;
+    font-size: 14px;
+    -webkit-animation-duration: 0.3s;
+    animation-duration: 0.3s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    -webkit-animation-name: modern-cron-upbit;
+    animation-name: modern-cron-upbit;
+    border: 1px solid #e8e8e8;
+    width: 400px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+@-webkit-keyframes modern-cron-upbit {
+    from {
+        -webkit-transform: translate3d(0, 20px, 0);
+        opacity: 0.3;
+    }
+
+    to {
+        -webkit-transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes modern-cron-upbit {
+    from {
+        transform: translate3d(0, 20px, 0);
+        opacity: 0.3;
+    }
+
+    to {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
+/* tabs */
+.layui-modern-cron>.layui-tab {
+    margin: 0;
+    box-shadow: none;
+    border: none;
+}
+
+.layui-modern-cron .layui-tab-title {
+    background: #f5f7fa;
+    border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid #e8e8e8;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+}
+
+.layui-modern-cron .layui-tab-title li {
+    font-weight: 500;
+    color: #666;
+    transition: all 0.3s;
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.layui-modern-cron .layui-tab-title .layui-this {
+    color: #1E9FFF;
+    font-weight: 600;
+}
+
+/* 表达式 */
+.modern-cron-title {
+    margin-left: 15px;
+    color: #333;
+}
+
+.modern-cron-box {
+    margin: 0px;
+}
+
+.modern-cron-box+.modern-cron-box {
+    margin-top: 0px;
+}
+
+/* 按钮 */
+.modern-cron-footer-btns {
+    text-align: right;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+.modern-cron-footer-btns span {
+    height: 32px;
+    line-height: 32px;
+    margin: 0 8px;
+    padding: 0 16px;
+    border: none;
+    background: linear-gradient(135deg, #1E9FFF 0%, #2D8CF0 100%);
+    color: white;
+    border-radius: 6px;
+    transition: all 0.3s;
+    white-space: nowrap;
+    vertical-align: top;
+    display: inline-block;
+    cursor: pointer;
+    font-size: 14px;
+    box-sizing: border-box;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modern-cron-footer-btns span:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modern-cron-footer-btns span:active {
+    transform: translateY(0);
+}
+
+.modern-cron-footer-btns .modern-cron-btns-run {
+    background: linear-gradient(135deg, #5FB878 0%, #36B37E 100%);
+}
+
+/* 表单 */
+.layui-modern-cron .layui-form-radio {
+    margin-right: 0;
+    display: inline-block;
+    vertical-align: middle;
+    min-height: 22px;
+    line-height: 22px;
+    margin-top: 3px;
+}
+
+.modern-cron-form {
+    line-height: 26px;
+    font-size: 14px;
+}
+
+.modern-cron-input-mid {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: 4px;
+    background-color: #f0f2f5;
+    padding: 0 12px;
+    height: 28px;
+    line-height: 28px;
+    border: 1px solid #dcdfe6;
+    box-sizing: border-box;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.modern-cron-input {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: 4px;
+    padding: 0 12px;
+    background-color: #f8f9fb;
+    border: 1px solid #e4e7ed;
+    border-radius: 4px;
+    height: 28px;
+    line-height: 28px;
+    box-sizing: border-box;
+    width: 80px;
+    -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    font-size: 14px;
+}
+
+.modern-cron-input:focus {
+    outline: 0;
+    border: 1px solid #01AAED;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 4px 0px #01AAED;
+    translate: 1s;
+}
+
+.layui-modern-cron .layui-form-checkbox[lay-skin="primary"] span {
+    padding-right: 10px;
+    min-width: 16px;
+    font-size: 14px;
+}
+
+.layui-modern-cron .layui-form-checkbox[lay-skin="primary"] {
+    padding-left: 24px;
+    margin-top: 4px;
+    min-height: 22px;
+    line-height: 22px;
+}
+
+.layui-modern-cron .layui-form-checkbox[lay-skin="primary"]:disabled {
+    background-color: #f5f5f5;
+    color: #ccc;
+    border-color: #e6e6e6;
+    cursor: not-allowed;
+}
+
+.layui-modern-cron input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.layui-modern-cron input[type=number]::-webkit-inner-spin-button,
+.layui-modern-cron input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.modern-cron-tips {
+    color: #999;
+    line-height: 28px;
+    height: 28px;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+/* 最近运行时间 */
+.modern-cron-recent-times {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1px 2px;
+    border: 1px solid #e8e8e8;
+    max-height: 160px;
+    overflow-y: auto;
+    margin-top: 1px;
+}
+
+.modern-cron-recent-times .time-item {
+    padding: 1px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+.modern-cron-recent-times .time-item:last-child {
+    border-bottom: none;
+}
+
+.modern-cron-recent-times .time-icon {
+    color: #1E9FFF;
+    margin-right: 8px;
+}
+
+.modern-cron-recent-times .time-value {
+    color: #5FB878;
+    font-weight: 500;
+}

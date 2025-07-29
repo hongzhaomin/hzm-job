@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/layui-mini/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../static/layui-mini/css/public.css" media="all">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <!-- 搜索栏 -->
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" autocomplete="off" action="" lay-filter="formSearchFilter">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">执行器</label>
+                            <div class="layui-input-inline">
+                                <select name="executorId" lay-search="" lay-filter="changeExecutorIdFilter">
+                                    <option value="">全部</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">任务</label>
+                            <div class="layui-input-inline">
+                                <select name="jobId" lay-search="">
+                                    <option value="">全部</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">状态</label>
+                            <div class="layui-input-inline">
+                                <select name="status">
+                                    <option value="">全部</option>
+                                    <option value="1">执行中</option>
+                                    <option value="2">执行结束</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">调度时间</label>
+                            <div class="layui-input-inline" style="width: 300px">
+                                <input type="text" name="scheduleTime" class="layui-input" id="scheduleTimeRange"
+                                       value="" placeholder="开始时间 至 结束时间">
+                            </div>
+                        </div>
+                        <!--                        <div class="layui-inline">-->
+                        <!--                            <label class="layui-form-label">调度时间</label>-->
+                        <!--                            <div class="layui-inline" id="scheduleTimeRange">-->
+                        <!--                                <div class="layui-input-inline">-->
+                        <!--                                    <input type="text" id="scheduleStartTime" class="layui-input" placeholder="开始时间">-->
+                        <!--                                </div>-->
+                        <!--                                <div class="layui-form-mid">-</div>-->
+                        <!--                                <div class="layui-input-inline">-->
+                        <!--                                    <input type="text" id="scheduleEndTime" class="layui-input" placeholder="结束时间">-->
+                        <!--                                </div>-->
+                        <!--                            </div>-->
+                        <!--                        </div>-->
+
+                        <div class="layui-inline">
+                            <button id="searchBtn" type="submit" class="layui-btn layui-btn-normal" lay-submit
+                                    lay-filter="data-search-btn">
+                                <i class="layui-icon"></i>
+                                搜 索
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <!-- 工具栏 -->
+        <script type="text/html" id="toolbarlog">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-danger layui-btn-sm data-del-btn" lay-event="clear">清理</button>
+                </button>
+            </div>
+        </script>
+
+        <!-- 调度日志 -->
+        <table class="layui-hide" id="logTableId" lay-filter="currentTableFilter"></table>
+
+        <!-- 操作列按钮 -->
+        <script type="text/html" id="operateTableBar">
+            <a class="layui-btn layui-btn-xs data-count-stop-job" lay-event="stopJob">终止任务</a>
+        </script>
+
+    </div>
+</div>
+
+<script src="../static/layui-mini/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+<script src="../static/layui-mini/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'table', 'loginCheck', 'layer', 'laydate'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            laydate = layui.laydate,
+            layer = layui.layer;
+
+        // 获取页面url参数
+        let jobId = getQueryVariable("jobId");
+        let executorId = getQueryVariable("executorId");
+        renderExecutorSelect(executorId, jobId);
+
+        // 定义初始化方法，给父页面调用，达到传递数据的目的
+        window.initLog = function (params) {
+            let jobId = params.jobId;
+            let executorId = params.executorId;
+            renderExecutorSelect(executorId, jobId);
+        }
+
+        // 定义初始化执行器下拉框方法
+        function renderExecutorSelect(executorId, jobId) {
+            $.getJSON('/admin/executor/select-box', function (res) {
+                if (res.success) {
+                    let optionsHtml = '';
+                    if (res.data) {
+                        for (let item of res.data) {
+                            optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                        }
+                    }
+                    let executorIdSelect = $('select[name="executorId"]').append(optionsHtml);
+                    // 重新渲染下拉框
+                    form.render('select');
+
+                    if (executorId) {
+                        executorIdSelect.val(parseInt(executorId));
+                        renderJobSelect(executorId, jobId);
+                    } else {
+                        // 渲染列表
+                        tableRender();
+                    }
+                }
+            });
+        }
+
+        // 定义渲染任务下拉框方法
+        function renderJobSelect(executorId, jobId) {
+            $.getJSON('/admin/job/select-box', {executorId: executorId ? parseInt(executorId) : undefined}, function (res) {
+                if (res.success) {
+                    let optionsHtml = '<option value="">全部</option>';
+                    if (res.data) {
+                        for (let item of res.data) {
+                            optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                        }
+                    }
+                    let jobIdSelect = $('select[name="jobId"]').empty().append(optionsHtml);
+
+                    let containsJobId = jobId ? res.data.map(v => v.value).includes(parseInt(jobId)) : false;
+                    if (jobId && containsJobId) {
+                        jobId = parseInt(jobId);
+                        jobIdSelect.val(jobId);
+
+                        // 渲染列表
+                        tableRender({executorId: executorId, jobId: jobId});
+                    } else if (jobId !== undefined) {
+                        // jobId为undefined,说明是从监听执行器下拉框变更事件调用过来的，此时不需要渲染列表
+                        // 其他场景调用过来的，需要渲染列表
+                        tableRender();
+                    }
+
+                    // 重新渲染下拉框
+                    form.render('select');
+                } else {
+                    // 渲染列表
+                    tableRender();
+                }
+            });
+        }
+
+        // 渲染调度时间选择器
+        // let nowDate = formatNowDate();
+        // let laydateInitValue = nowDate + " 00:00:00 至 " + nowDate + " 23:59:59"
+        laydate.render({
+            elem: '#scheduleTimeRange',
+            type: 'datetime',
+            // value: '2025-07-25 00:00:00 至 2025-07-26 23:59:59',
+            // value: laydateInitValue,
+            range: '至',
+            // range: ['#scheduleStartTime', '#scheduleEndTime'], // 自定义分割字符
+            // range: ['#scheduleStartTime', '#scheduleEndTime'], // 自定义分割字符
+            theme: 'molv',
+            // change: function (value, date, endDate) {
+            //     console.log("日期切换(change):", value);
+            // },
+            done: function (value, date, endDate) {
+                // console.log("done:", value);
+                // laydate调用done之后，再将日期更新到input，这样在done回调中直接设置转换后的日期到input中不生效。
+                // 没啥好办法，只能延迟处理了
+                timeout = setTimeout(() => {
+                    // value是得到的时间值，格式如：2023-01-01 - 2023-01-15
+                    // date是开始日期对象，endDate是结束日期对象（注意：如果只选了一个日期，则endDate为undefined）
+                    if (value) {
+                        var dateArray = value.split(' 至 ');
+                        // 如果选择了两个日期（即数组长度为2）
+                        if (dateArray.length === 2) {
+                            // 修改结束日期，加上23:59:59
+                            var endDateStr = dateArray[1].replaceAll('00:00:00', '23:59:59');
+                            // 重新组合成字符串
+                            value = dateArray[0] + ' 至 ' + endDateStr;
+                            // 将修改后的值赋给输入框
+                            $('#scheduleTimeRange').val(value);
+                        }
+                    }
+                }, 50);
+            }
+        });
+
+        // 监听执行器下拉选择事件
+        form.on('select(changeExecutorIdFilter)', function (data) {
+            // console.log(data.elem); //得到select原始DOM对象
+            // console.log(data.value); //得到被选中的值
+            // console.log(data.othis); //得到美化后的DOM对象
+            if (data.value) {
+                renderJobSelect(parseInt(data.value));
+            } else {
+                $('select[name="jobId"]').empty().append('<option value="">全部</option>');
+                // 重新渲染下拉框
+                form.render('select');
+            }
+        });
+
+        // 定义渲染列表方法
+        function tableRender(where) {
+            table.render({
+                elem: '#logTableId',
+                url: '/admin/log/page',
+                where: where,
+                toolbar: '#toolbarlog',
+                defaultToolbar: ['filter'],
+                cols: [[
+                    {field: 'id', title: 'ID', width: 60, sort: true},
+                    {field: 'jobId', title: '任务id', hide: true},
+                    {field: 'jobDescription', title: '任务描述'},
+                    {field: 'jobName', title: '任务名称', hide: true},
+                    {field: 'parameters', title: '任务参数', hide: true},
+                    {field: 'executorId', title: '执行器id', hide: true},
+                    {field: 'executorName', title: '执行器名称'},
+                    {field: 'executorNodeId', title: '执行器节点id', hide: true},
+                    {field: 'executorNodeAddress', title: '执行器节点地址', width: 190},
+                    {
+                        field: 'status', title: '状态', templet: function (d) {
+                            if (d.status === 1) {
+                                return '<span class="layui-badge layui-bg-blue">执行中</span>';
+                            } else if (d.status === 2) {
+                                return '<span class="layui-badge layui-bg-green">执行结束</span>';
+                            }
+                            return '';
+                        }
+                    },
+                    {field: 'scheduleTime', title: '调度时间', width: 160},
+                    {
+                        field: 'handleCode', title: '执行结果', width: 90, templet: function (d) {
+                            if (d.handleCode && d.handleCode === 200) {
+                                return '<span class="layui-badge layui-bg-green">成功</span>';
+                            } else if (d.handleCode && d.handleCode !== 200) {
+                                return '<span class="layui-badge">失败</span>';
+                            }
+                            return '';
+                        }
+                    },
+                    {field: 'handleMsg', title: '结果消息', width: 160},
+                    {field: 'finishTime', title: '完成时间', width: 160},
+                    {
+                        title: '操作',
+                        minWidth: 100,
+                        toolbar: '#operateTableBar',
+                        align: "center",
+                        fixed: "right",
+                        width: 100
+                    }
+                ]],
+                limits: [10, 15, 20, 25, 50, 100],
+                // limit: 1,
+                page: true,
+                request: {
+                    pageName: 'currentPage', // 页码的参数名称，默认：page
+                    limitName: 'pageSize' // 每页数据量的参数名，默认：limit
+                },
+                // response: {
+                //     // statusName: 'status', // 规定数据状态的字段名称，默认：code
+                //     // statusCode: 200, // 规定成功的状态码，默认：0
+                //     // msgName: 'hint', // 规定状态信息的字段名称，默认：msg
+                //     // countName: 'total', // 规定数据总数的字段名称，默认：count
+                //     // dataName: 'rows' // 规定数据列表的字段名称，默认：data
+                // },
+                parseData: function (res) { //res 即为原始返回的数据
+                    return {
+                        "code": res.code === 200 ? 0 : res.code, // 解析接口状态
+                        "msg": res.msg, // 解析提示文本
+                        "count": res.count, // 解析数据长度
+                        "data": res.data // 解析数据列表
+                    };
+                },
+                // 数据渲染完的回调
+                done: function (res) {
+                    res.data.forEach(function (item, index) {
+                        if (item.status !== 1) { // status==1:表示任务正在执行中，非执行中的终止任务按钮禁用
+                            // 终止任务按钮置灰
+                            $('tr[data-index=' + index + '] .data-count-stop-job')
+                                .addClass('layui-btn-disabled')
+                                .removeClass('layui-btn-normal')
+                                .attr('disabled', true);
+                            form.render();
+                        }
+                    });
+                }
+
+                // line （行边框风格）
+                // row （列边框风格）
+                // nob （无边框风格）
+                // skin: 'line'
+            });
+        }
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            const {executorId, jobId, status, scheduleTime} = data.field
+            let scheduleStartTime = '';
+            let scheduleEndTime = '';
+            if (scheduleTime) {
+                let dateArray = scheduleTime.split(' 至 ');
+                // 如果选择了两个日期（即数组长度为2）
+                if (dateArray.length === 2) {
+                    scheduleStartTime = dateArray[0]
+                    scheduleEndTime = dateArray[1]
+                }
+            }
+            let query = {scheduleStartTime, scheduleEndTime}
+            if (executorId) {
+                query.executorId = parseInt(executorId);
+            }
+            if (jobId) {
+                query.jobId = parseInt(jobId);
+            }
+            if (status) {
+                query.status = parseInt(status);
+            }
+
+            // 执行搜索重载
+            table.reload('logTableId', {
+                // page: {
+                //     curr: 1
+                // },
+                where: query
+            }, 'data');
+
+            return false;
+        });
+
+        // 监听表格复选框选择
+        // table.on('checkbox(currentTableFilter)', function (obj) {
+        // });
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'clear') {  // 监听清理操作
+                var index = layer.open({
+                    title: '日志清理',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    skin: 'layui-layer-molv',
+                    area: ['40%', '70%'],
+                    content: 'log-clear-layer',
+                    btn: ['确认清理', '取消'],
+                    yes: function (index, layero) {
+                        // 向子页面传递参数
+                        // 获取子页面window对象
+                        const childWindow = layero.find('iframe')[0].contentWindow;
+                        // 调用子页面表单提交方法
+                        if (childWindow.logClearSubmit) {
+                            childWindow.logClearSubmit(index);
+                        }
+                    },
+                    btn2: function (index, layero) {
+                        layer.close(index);
+                    },
+                    success: function (layero, index) {
+                        const formDate = form.val('formSearchFilter');
+                        // 回显数据
+                        // 向子页面传递参数
+                        // 获取子页面window对象
+                        const childWindow = layero.find('iframe')[0].contentWindow;
+                        // 调用子页面初始化方法
+                        if (childWindow.initLogClearLayer) {
+                            childWindow.initLogClearLayer({
+                                jobId: formDate.jobId,
+                                executorId: formDate.executorId
+                            });
+                        }
+                    },
+                    end: doSearch
+                });
+            }
+        });
+
+        // 操作栏按钮事件监听
+        table.on('tool(currentTableFilter)', function (obj) {
+            if (obj.event === 'stopJob') {
+                if ($(this).hasClass("layui-btn-disabled")) {
+                    return false; // 阻止禁用状态下的点击
+                }
+                let {executorNodeAddress, id} = obj.data;
+                let submitData = {};
+                if (executorNodeAddress) {
+                    submitData.address = executorNodeAddress;
+                }
+                if (id) {
+                    submitData.id = parseInt(id);
+                }
+
+                layer.confirm('确定终止任务', {icon: 3, title: '提示'}, function (index) {
+                    $.ajax({
+                        url: '/admin/log/stop-job',
+                        type: "post",
+                        data: JSON.stringify(submitData),
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (res) {
+                            if (res.success) {
+                                layer.msg('任务终止成功', {icon: 6, time: 1000});
+                                doSearch();
+                            } else {
+                                layer.msg(res.msg, {icon: 5, time: 1000});
+                            }
+                        }
+                    });
+                    layer.close(index);
+                });
+                return false;
+            }
+        });
+
+        // 触发排序事件
+        table.on('sort(currentTableFilter)', function (obj) { //注：sort 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值 "
+            // console.log(obj.field); //当前排序的字段名
+            // console.log(obj.type); //当前排序类型：desc（降序）、asc（升序）、null（空对象，默认排序）
+            // console.log(this); //当前排序的 th 对象
+
+            //尽管我们的 table 自带排序功能，但并没有请求服务端。
+            //有些时候，你可能需要根据当前排序的字段，重新向服务端发送请求，从而实现服务端排序，如：
+            table.reload('logTableId', {
+                initSort: obj //记录初始排序，如果不设的话，将无法标记表头的排序状态。
+                , where: { //请求参数（注意：这里面的参数可任意定义，并非下面固定的格式）
+                    field: obj.field //排序字段
+                    , order: obj.type //排序方式
+                }
+            });
+
+            // layer.msg('服务端排序。order by ' + obj.field + ' ' + obj.type);
+        });
+
+        function doSearch() {
+            $('#searchBtn').click();
+        }
+
+    });
+
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            let name = '';
+            let val = '';
+            if (pair.length === 1) {
+                name = pair[0];
+            } else if (pair.length === 2) {
+                name = pair[0];
+                val = pair[1];
+            }
+            if (name === variable) {
+                return decodeURIComponent(val); // 中文参数需解码
+            }
+        }
+        return null;
+    }
+
+    // 获取当前时间并格式化为 YYYY-MM-DD
+    function formatNowDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+        // const hours = String(now.getHours()).padStart(2, '0');
+        // const minutes = String(now.getMinutes()).padStart(2, '0');
+        // const seconds = String(now.getSeconds()).padStart(2, '0');
+        // return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+</script>
+
+</body>
+</html>

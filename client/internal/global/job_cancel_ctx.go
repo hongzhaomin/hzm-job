@@ -12,7 +12,7 @@ func NewJobCancelCtx() *JobCancelCtx {
 }
 
 type JobCancelCtx struct {
-	logId2CancelFuncMap *sync.Map // map[*int64]context.CancelFunc
+	logId2CancelFuncMap *sync.Map // map[int64]context.CancelFunc
 }
 
 func (my *JobCancelCtx) Put(logId *int64, cancel context.CancelFunc) {
@@ -32,7 +32,7 @@ func (my *JobCancelCtx) getAndRemove(logId *int64) context.CancelFunc {
 	if logId == nil {
 		return nil
 	}
-	value, ok := my.logId2CancelFuncMap.LoadAndDelete(logId)
+	value, ok := my.logId2CancelFuncMap.LoadAndDelete(*logId)
 	if !ok {
 		return nil
 	}
