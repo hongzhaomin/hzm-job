@@ -18,6 +18,9 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 var (
@@ -41,6 +44,25 @@ func main() {
 	openApi := openapi.NewJobServerOpenApi(&api.JobServerApiImpl{})
 	router := NewGinRouter(openApi)
 	router.Start()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	// kill (no params) by default sends syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can't be caught, so don't need add it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	global.SingletonPool().Log.Info("hzm-job =========> Shutdown Server ...")
+
+	// 停止gin
+	router.Showdown()
+	// 停止cron
+	cronStopSign := global.SingletonPool().Cron.Stop()
+	<-cronStopSign.Done()
+	global.SingletonPool().Log.Info("hzm-job =========> Cron stoped")
+
+	global.SingletonPool().Log.Info("hzm-job =========> Server exiting")
 }
 
 func init() {

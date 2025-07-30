@@ -15,11 +15,8 @@ import (
 	"github.com/hongzhaomin/hzm-job/core/ezconfig"
 	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"net/http"
-	"os"
-	"os/signal"
 	"slices"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -143,29 +140,14 @@ func (my *GinRouter) Start() {
 			global.SingletonPool().Log.Info("hzm-job =========> server started err: ", err)
 		}
 	}()
+}
 
-	// Wait for interrupt signal to gracefully shutdown the server with
-	// a timeout of 5 seconds.
-	quit := make(chan os.Signal, 1)
-	// kill (no params) by default sends syscall.SIGTERM
-	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall.SIGKILL but can't be caught, so don't need add it
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	global.SingletonPool().Log.Info("hzm-job =========> Shutdown Server ...")
-
+func (my *GinRouter) Showdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	// 停止cron
-	cronStopSign := global.SingletonPool().Cron.Stop()
-	<-cronStopSign.Done()
-	global.SingletonPool().Log.Info("hzm-job =========> Cron stoped")
-
-	// 停止gin
 	if err := my.server.Shutdown(ctx); err != nil {
 		global.SingletonPool().Log.Info("hzm-job =========> Gin Shutdown:", err)
 	}
-	global.SingletonPool().Log.Info("hzm-job =========> Server exiting")
 }
 
 // 页面跳转路由
