@@ -35,7 +35,6 @@ func main() {
 	// 启动 cron 定时任务
 	c := global.SingletonPool().Cron
 	c.Start()
-	defer c.Stop()
 
 	// 启动web服务
 	// 创建开放接口controller

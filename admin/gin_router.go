@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/hongzhaomin/hzm-job/admin/dao"
@@ -13,8 +15,12 @@ import (
 	"github.com/hongzhaomin/hzm-job/core/ezconfig"
 	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"net/http"
+	"os"
+	"os/signal"
 	"slices"
 	"strings"
+	"syscall"
+	"time"
 )
 
 func NewGinRouter(openApi *openapi.JobServerOpenApi) *GinRouter {
@@ -28,6 +34,7 @@ func NewGinRouter(openApi *openapi.JobServerOpenApi) *GinRouter {
 }
 
 type GinRouter struct {
+	server         *http.Server
 	noAuthPathList []string
 	openApi        *openapi.JobServerOpenApi
 	toHtml         controller.ToHtml
@@ -122,8 +129,43 @@ func (my *GinRouter) Start() {
 	if adminConfig.Port != "" {
 		port = adminConfig.Port
 	}
-	global.SingletonPool().Log.Info(fmt.Sprintf("server started on port(s): %s (http) with context path '/'", port))
-	_ = engine.Run(":" + port)
+
+	// 实现优雅关机
+	//_ = engine.Run(":" + port)
+	my.server = &http.Server{
+		Addr:    ":" + port,
+		Handler: engine.Handler(),
+	}
+	go func() {
+		// service connections
+		global.SingletonPool().Log.Info(fmt.Sprintf("hzm-job =========> server started on port(s): %s (http) with context path '/'", port))
+		if err := my.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			global.SingletonPool().Log.Info("hzm-job =========> server started err: ", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	// kill (no params) by default sends syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can't be caught, so don't need add it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	global.SingletonPool().Log.Info("hzm-job =========> Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	// 停止cron
+	cronStopSign := global.SingletonPool().Cron.Stop()
+	<-cronStopSign.Done()
+	global.SingletonPool().Log.Info("hzm-job =========> Cron stoped")
+
+	// 停止gin
+	if err := my.server.Shutdown(ctx); err != nil {
+		global.SingletonPool().Log.Info("hzm-job =========> Gin Shutdown:", err)
+	}
+	global.SingletonPool().Log.Info("hzm-job =========> Server exiting")
 }
 
 // 页面跳转路由
