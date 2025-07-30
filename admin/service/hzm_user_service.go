@@ -29,9 +29,10 @@ func (my *HzmUserService) Add(param req.User) error {
 	}
 
 	// 新增用户
+	password := tool.MD5(*param.Password)
 	user := po.HzmUser{
 		UserName: param.UserName,
-		Password: param.Password,
+		Password: &password,
 		Role:     (*byte)(param.Role),
 		Email:    param.Email,
 	}
@@ -77,10 +78,16 @@ func (my *HzmUserService) Edit(param req.User) error {
 	user.Role = (*byte)(param.Role)
 	user.Email = param.Email
 	// 密码为空则不更新
+	upgradeVersion := false
 	if param.Password != nil && *param.Password != "" {
-		user.Password = param.Password
+		newPassword := tool.MD5(*param.Password)
+		if *user.Password != newPassword {
+			user.Password = &newPassword
+			// 密码更新，升级token版本
+			upgradeVersion = true
+		}
 	}
-	if err = my.hzmUserDao.Update(user); err != nil {
+	if err = my.hzmUserDao.Update(user, upgradeVersion); err != nil {
 		global.SingletonPool().Log.Error(err.Error())
 		return consts.ServerError
 	}
@@ -199,10 +206,7 @@ func (my *HzmUserService) DataPermsByUserId(userId int64) *vo.UserDataPerms {
 	}
 }
 
-func (my *HzmUserService) EditPassword(param req.EditPasswordParam) error {
-	// fixme 获取当前登录用户id
-	//id := kit.CurrentUserId()
-	var userId int64
+func (my *HzmUserService) EditPassword(userId int64, param req.EditPasswordParam) error {
 	if param.NewPassword != param.AgainPassword {
 		return errors.New("两次输入的新密码不一致")
 	}
@@ -214,16 +218,66 @@ func (my *HzmUserService) EditPassword(param req.EditPasswordParam) error {
 	if user == nil {
 		return errors.New("当前用户不存在")
 	}
-	if *user.Password != param.OldPassword {
+	if *user.Password != tool.MD5(param.OldPassword) {
 		return errors.New("密码输入错误")
 	}
-	user.Password = &param.NewPassword
-	if err = my.hzmUserDao.Update(user); err != nil {
+	newPassword := tool.MD5(param.NewPassword)
+	user.Password = &newPassword
+	if err = my.hzmUserDao.Update(user, *user.Password != newPassword); err != nil {
 		global.SingletonPool().Log.Error(err.Error())
 		return consts.ServerError
 	}
+	return nil
+}
 
-	// 强制退出
-	//my.HttpSession.RemoveAttribute(kit.CurrentUser().AccessToken)
+func (my *HzmUserService) Login(param req.Login) (*vo.LoginUser, error) {
+	user, err := my.hzmUserDao.FindByUserName(&param.UserName)
+	if user == nil {
+		if err != nil {
+			global.SingletonPool().Log.Error(err.Error())
+			return nil, consts.ServerError
+		}
+		return nil, errors.New("用户不存在")
+	}
+	if *user.Password != tool.MD5(param.Password) {
+		return nil, errors.New("密码不正确")
+	}
+
+	token, err := tool.GenerateToken(*user.Id, *user.TokenVersion)
+	if err != nil {
+		global.SingletonPool().Log.Error(err.Error())
+		return nil, consts.ServerError
+	}
+
+	return &vo.LoginUser{
+		Id:          user.Id,
+		UserName:    user.UserName,
+		AccessToken: &token,
+	}, nil
+}
+
+func (my *HzmUserService) FindUserById(userId int64) *vo.User {
+	user, err := my.hzmUserDao.FindById(&userId)
+	if user == nil {
+		if err != nil {
+			global.SingletonPool().Log.Error(err.Error())
+		}
+		return nil
+	}
+	return &vo.User{
+		Id:       user.Id,
+		UserName: user.UserName,
+		Role:     (*po.UserRole)(user.Role),
+		RoleName: po.GetNameByRole(user.Role),
+		Email:    user.Email,
+	}
+}
+
+func (my *HzmUserService) LoginOut(userId int64) error {
+	// 升级token版本
+	if err := my.hzmUserDao.UpgradeTokenVersion(userId); err != nil {
+		global.SingletonPool().Log.Error(err.Error())
+		return consts.ServerError
+	}
 	return nil
 }

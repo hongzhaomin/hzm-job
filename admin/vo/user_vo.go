@@ -2,6 +2,12 @@ package vo
 
 import "github.com/hongzhaomin/hzm-job/admin/po"
 
+type LoginUser struct {
+	Id          *int64  `json:"id,omitempty"`          // 用户id
+	UserName    *string `json:"userName,omitempty"`    // 用户名
+	AccessToken *string `json:"accessToken,omitempty"` // 令牌
+}
+
 type User struct {
 	Id       *int64       `json:"id,omitempty"`       // 用户id
 	UserName *string      `json:"userName,omitempty"` // 用户名

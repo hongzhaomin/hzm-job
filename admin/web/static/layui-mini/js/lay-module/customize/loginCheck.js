@@ -1,4 +1,3 @@
-
 layui.define(["jquery", "layer"], function (exports) {
     let $ = layui.$;
     let layer = layui.layer;
@@ -9,15 +8,15 @@ layui.define(["jquery", "layer"], function (exports) {
 
     // 全局校验登录态
     $.ajaxSetup({
-        headers: {"accessToken": accessToken},
+        headers: {"Authorization": "Bearer " + accessToken},
         // timeout: 5000,
         // dataType: "json",
-        complete: function(xhr) {
-            if(xhr.status !== 401 && xhr.status !== 200) {
+        complete: function (xhr) {
+            if (xhr.status !== 401 && xhr.status !== 200) {
                 console.log('xhr', xhr)
                 layer.msg(xhr.statusText, {icon: 2});
             }
-            if(xhr.status === 401 || xhr.getResponseHeader("sessionstatus") === "timeout") {
+            if (xhr.status === 401 || xhr.getResponseHeader("sessionstatus") === "timeout") {
                 top.location.replace('/login');
             }
         }
@@ -32,12 +31,13 @@ layui.define(["jquery", "layer"], function (exports) {
             //     console.log(response);
             // },
             error: function (xhr, status, error) {
-                if(xhr.status === 401) {
+                if (xhr.status === 401) {
                     window.location.replace('/login');
                 }
             }
         });
     }
+
     checkLoginStatus();
 
     let loginCheck = {

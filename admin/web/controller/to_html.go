@@ -9,6 +9,12 @@ import (
 type ToHtml struct {
 }
 
+// ToLogin 跳转登录页面
+// @Get /login
+func (my *ToHtml) ToLogin(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "login.html", nil)
+}
+
 // ToIndex 跳转index页面
 // @Get /
 func (my *ToHtml) ToIndex(ctx *gin.Context) {

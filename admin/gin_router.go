@@ -3,19 +3,32 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/dao"
 	"github.com/hongzhaomin/hzm-job/admin/internal/consts"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/prop"
+	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/web/controller"
 	"github.com/hongzhaomin/hzm-job/admin/web/controller/openapi"
 	"github.com/hongzhaomin/hzm-job/core/ezconfig"
+	"github.com/hongzhaomin/hzm-job/core/sdk"
+	"net/http"
+	"slices"
+	"strings"
 )
 
 func NewGinRouter(openApi *openapi.JobServerOpenApi) *GinRouter {
-	return &GinRouter{openApi: openApi}
+	return &GinRouter{
+		openApi: openApi,
+		noAuthPathList: []string{
+			//"/admin/executor/**",
+			"/admin/login",
+		},
+	}
 }
 
 type GinRouter struct {
+	noAuthPathList []string
 	openApi        *openapi.JobServerOpenApi
 	toHtml         controller.ToHtml
 	authController controller.AuthController
@@ -24,6 +37,7 @@ type GinRouter struct {
 	executorManage controller.ExecutorManage
 	userManage     controller.UserManage
 	menuManage     controller.MenuManage
+	hzmUserDao     dao.HzmUserDao
 }
 
 func (my *GinRouter) webGroup(webGroup *gin.RouterGroup) {
@@ -96,11 +110,12 @@ func (my *GinRouter) Start() {
 	my.htmlJump(engine)
 
 	// 注册路由: openapi
-	apiGroup := engine.Group("/api")
+	apiGroup := engine.Group("/api", my.apiAuthMiddle)
 	my.apiGroup(apiGroup)
 
 	// 注册路由: web（后端接口）
-	webGroup := engine.Group("/admin")
+	webGroup := engine.Group("/admin", my.adminAuthMiddle)
+	//webGroup := engine.Group("/admin")
 	my.webGroup(webGroup)
 
 	port := consts.DefaultPort
@@ -113,6 +128,9 @@ func (my *GinRouter) Start() {
 
 // 页面跳转路由
 func (my *GinRouter) htmlJump(engine *gin.Engine) {
+	// 登录页
+	engine.GET("/login", my.toHtml.ToLogin)
+
 	// 首页
 	engine.GET("/", my.toHtml.ToIndex)
 	engine.GET("/home", my.toHtml.ToHome)
@@ -138,4 +156,51 @@ func (my *GinRouter) htmlJump(engine *gin.Engine) {
 	engine.GET("/user-add-layer", my.toHtml.ToUserAddLayer)
 	engine.GET("/user-edit-layer", my.toHtml.ToUserEditLayer)
 	engine.GET("/user-password", my.toHtml.ToUserPassword)
+}
+
+func (my *GinRouter) apiAuthMiddle(ctx *gin.Context) {
+	// openapi鉴权中间件
+	// todo 服务端颁发一个token给执行器，执行器每个接口请求都把执行器标识带过来，调度中心本地缓存执行器标识的token进行鉴权
+
+	// 接口处理
+	ctx.Next()
+}
+
+func (my *GinRouter) adminAuthMiddle(ctx *gin.Context) {
+	requestUri := ctx.Request.URL.Path
+	skipAuth := slices.ContainsFunc(my.noAuthPathList, func(noAuthPath string) bool {
+		if strings.HasSuffix(noAuthPath, "**") {
+			prefix := noAuthPath[:strings.Index(noAuthPath, "**")-1]
+			return strings.HasPrefix(requestUri, prefix)
+		}
+		return noAuthPath == requestUri
+	})
+	if !skipAuth {
+		token := strings.ReplaceAll(ctx.GetHeader("Authorization"), "Bearer ", "")
+		if token == "" {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, sdk.Fail("无效令牌"))
+			return
+		}
+
+		claims, err := tool.ParseToken(token)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, sdk.Fail("无效令牌"))
+			return
+		}
+
+		// 校验token版本
+		user, _ := my.hzmUserDao.FindById(&claims.UserId)
+		if user == nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, sdk.Fail("用户不存在"))
+			return
+		}
+		if claims.Version != *user.TokenVersion {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, sdk.Fail("无效令牌"))
+			return
+		}
+
+		ctx.Set("userId", claims.UserId)
+	}
+
+	ctx.Next()
 }

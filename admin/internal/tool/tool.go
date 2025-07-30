@@ -1,6 +1,10 @@
 package tool
 
-import "reflect"
+import (
+	"crypto/md5"
+	"encoding/hex"
+	"reflect"
+)
 
 func BeanConv[A any, B any](as []*A, convFunc func(a *A) (*B, bool)) []*B {
 	if len(as) <= 0 {
@@ -51,4 +55,10 @@ func isNil(a any) bool {
 		return true
 	}
 	return rv.IsZero()
+}
+
+// MD5 将字符串进行md5加密处理
+func MD5(data string) string {
+	resultArr := md5.Sum([]byte(data))
+	return hex.EncodeToString(resultArr[:])
 }

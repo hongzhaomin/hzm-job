@@ -3,10 +3,11 @@ package po
 // HzmUser 用户表
 type HzmUser struct {
 	BasePo
-	UserName *string // 用户名
-	Password *string // 密码
-	Role     *byte   // 角色：0-管理员；1-普通用户
-	Email    *string // 邮件
+	UserName     *string // 用户名
+	Password     *string // 密码
+	Role         *byte   // 角色：0-管理员；1-普通用户
+	Email        *string // 邮件
+	TokenVersion *int64  // token版本号
 }
 
 // UserRole 用户角色枚举

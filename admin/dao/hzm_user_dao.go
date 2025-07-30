@@ -18,9 +18,27 @@ func (my *HzmUserDao) Save(user *po.HzmUser) error {
 		Error
 }
 
-func (my *HzmUserDao) Update(user *po.HzmUser) error {
+func (my *HzmUserDao) Update(user *po.HzmUser, upgradeVersion bool) error {
+	return global.SingletonPool().Mysql.Transaction(func(tx *gorm.DB) error {
+		err := tx.Save(user).Error
+		if err != nil {
+			return err
+		}
+		if upgradeVersion {
+			return tx.Model(&po.HzmUser{}).
+				Where("valid = 1 and id = ?", user.Id).
+				Update("token_version", gorm.Expr("token_version + 1")).
+				Error
+		}
+		return nil
+	})
+}
+
+func (my *HzmUserDao) UpgradeTokenVersion(id int64) error {
 	return global.SingletonPool().Mysql.
-		Save(user).
+		Where("valid = 1 and id = ?", id).
+		Model(&po.HzmUser{}).
+		Update("token_version", gorm.Expr("token_version + 1")).
 		Error
 }
 

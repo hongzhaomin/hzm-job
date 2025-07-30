@@ -123,7 +123,6 @@ func (my *HttpJobClient) Start() {
 		}
 	})
 	err := my.server.ListenAndServe()
-	//err := http.ListenAndServe(":8888", nil)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		global.SingletonPool().Log.Error("ListenAndServe", "err", err)
 	}

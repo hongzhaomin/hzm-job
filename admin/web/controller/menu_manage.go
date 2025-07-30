@@ -33,7 +33,7 @@ func (my *MenuManage) Init(ctx *gin.Context) {
 				Icon:   "fa fa-th-large",
 				Target: "_self",
 			},
-			*my.GetMenu4Log(),
+			my.GetMenu4Log(),
 			{
 				Id:     30,
 				Title:  "执行器管理",
@@ -63,11 +63,11 @@ func (my *MenuManage) Init(ctx *gin.Context) {
 }
 
 func (my *MenuManage) GetLogMenu(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, sdk.Ok2[*vo.MenuInfo](my.GetMenu4Log()))
+	ctx.JSON(http.StatusOK, sdk.Ok2[vo.MenuInfo](my.GetMenu4Log()))
 }
 
-func (my *MenuManage) GetMenu4Log() *vo.MenuInfo {
-	return &vo.MenuInfo{
+func (my *MenuManage) GetMenu4Log() vo.MenuInfo {
+	return vo.MenuInfo{
 		Id:     20,
 		Title:  "调度日志",
 		Href:   "log",

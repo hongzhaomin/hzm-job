@@ -3,7 +3,6 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/admin/service"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
@@ -78,19 +77,9 @@ func (my *UserManage) DeleteBatch(ctx *gin.Context) {
 // Current 获取当前登录用户
 // @Get /admin/user/current
 func (my *UserManage) Current(ctx *gin.Context) {
-	// todo 逻辑待补充
-	id := int64(0)
-	userName := "admin"
-	role := po.Admin
-	roleName := "admin"
-	user := vo.User{
-		Id:       &id,
-		UserName: &userName,
-		Role:     &role,
-		RoleName: &roleName,
-		Email:    nil,
-	}
-	ctx.JSON(http.StatusOK, sdk.Ok2[vo.User](user))
+	userId, _ := ctx.Get("userId")
+	user := my.hzmUserService.FindUserById(userId.(int64))
+	ctx.JSON(http.StatusOK, sdk.Ok2[vo.User](*user))
 }
 
 // PageUsers 用户分页列表
@@ -143,7 +132,8 @@ func (my *UserManage) EditPassword(ctx *gin.Context) {
 		return
 	}
 
-	if err := my.hzmUserService.EditPassword(param); err != nil {
+	userId, _ := ctx.Get("userId")
+	if err := my.hzmUserService.EditPassword(userId.(int64), param); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
