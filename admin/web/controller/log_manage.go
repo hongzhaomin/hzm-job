@@ -27,7 +27,7 @@ func (my *LogManage) PageLogs(ctx *gin.Context) {
 		return
 	}
 
-	count, jobLogs := my.hzmLogService.PageLogs(param)
+	count, jobLogs := my.hzmLogService.PageLogs(tool.GetLoginUser(ctx), param)
 
 	ctx.JSON(http.StatusOK, sdk.Ok4Page[vo.JobLog](count, jobLogs))
 }

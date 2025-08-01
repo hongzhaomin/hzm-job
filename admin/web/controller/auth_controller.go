@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/service"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
@@ -43,8 +44,7 @@ func (my *AuthController) CheckLoginStatus(ctx *gin.Context) {
 // LoginOut 退出登录
 // @Post /admin/login-out
 func (my *AuthController) LoginOut(ctx *gin.Context) {
-	userId, _ := ctx.Get("userId")
-	if err := my.hzmUserService.LoginOut(userId.(int64)); err != nil {
+	if err := my.hzmUserService.LoginOut(tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}

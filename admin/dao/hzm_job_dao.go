@@ -57,6 +57,9 @@ func (my *HzmJobDao) Page(param req.JobPage) (int64, []*po.HzmJob, error) {
 	if param.Head != "" {
 		db = db.Where("head = ?", param.Head)
 	}
+	if len(param.ExecutorIds) > 0 {
+		db = db.Where("executor_id in(?)", param.ExecutorIds)
+	}
 
 	var count int64
 	db.Model(po.HzmJob{}).Count(&count)

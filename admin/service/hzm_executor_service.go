@@ -22,7 +22,19 @@ type HzmExecutorService struct {
 	hzmJobLogDao             dao.HzmJobLogDao
 }
 
-func (my *HzmExecutorService) PageExecutors(param req.ExecutorPage) (int64, []*vo.Executor) {
+func (my *HzmExecutorService) PageExecutors(loginUser *vo.User, param req.ExecutorPage) (int64, []*vo.Executor) {
+	if po.CommonUser == *loginUser.Role {
+		// 数据权限
+		executorIds4DataPerm, err := my.hzmUserDataPermissionDao.FindExecutorIdsByUserId(*loginUser.Id)
+		if len(executorIds4DataPerm) <= 0 {
+			if err != nil {
+				global.SingletonPool().Log.Error(err.Error())
+			}
+			return 0, nil
+		}
+		param.ExecutorIds = executorIds4DataPerm
+	}
+
 	count, executors, err := my.hzmExecutorDao.Page(param)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())
@@ -209,14 +221,33 @@ func (my *HzmExecutorService) LogicDeleteBatch(executorIds []int64) error {
 	return nil
 }
 
-func (my *HzmExecutorService) QuerySelectBox() []*vo.ExecutorSelectBox {
-	// fixme 鉴权功能弄好后，增加数据权限
-	executors, err := my.hzmExecutorDao.FindAll()
-	if len(executors) <= 0 {
-		if err != nil {
-			global.SingletonPool().Log.Error(err.Error())
+func (my *HzmExecutorService) QuerySelectBox(loginUser *vo.User) []*vo.ExecutorSelectBox {
+	var executors []*po.HzmExecutor
+	if po.CommonUser == *loginUser.Role {
+		// 数据权限
+		executorIds, err := my.hzmUserDataPermissionDao.FindExecutorIdsByUserId(*loginUser.Id)
+		if len(executorIds) <= 0 {
+			if err != nil {
+				global.SingletonPool().Log.Error(err.Error())
+			}
+			return nil
 		}
-		return []*vo.ExecutorSelectBox{}
+		executors, err = my.hzmExecutorDao.FindByIds(executorIds)
+		if len(executors) <= 0 {
+			if err != nil {
+				global.SingletonPool().Log.Error(err.Error())
+			}
+			return []*vo.ExecutorSelectBox{}
+		}
+	} else {
+		var err error
+		executors, err = my.hzmExecutorDao.FindAll()
+		if len(executors) <= 0 {
+			if err != nil {
+				global.SingletonPool().Log.Error(err.Error())
+			}
+			return []*vo.ExecutorSelectBox{}
+		}
 	}
 
 	return tool.BeanConv[po.HzmExecutor, vo.ExecutorSelectBox](executors,

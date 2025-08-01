@@ -14,6 +14,9 @@ CREATE TABLE `hzm_user`
     KEY             `idx_username` (`user_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
+INSERT INTO `hzm_user` (`user_name`, `password`, `role`, `email`, `token_version`) VALUES ('admin', 'c4ca4238a0b923820dcc509a6f75849b', 0, '2318448951@qq.com', 0);
+
+
 -- 用户数据权限表(执行器维度)
 CREATE TABLE `hzm_user_data_permission`
 (

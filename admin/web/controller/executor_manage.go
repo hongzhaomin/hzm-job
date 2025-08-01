@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/admin/service"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
@@ -28,7 +29,7 @@ func (my *ExecutorManage) PageExecutors(ctx *gin.Context) {
 		return
 	}
 
-	count, executors := my.hzmExecutorService.PageExecutors(param)
+	count, executors := my.hzmExecutorService.PageExecutors(tool.GetLoginUser(ctx), param)
 
 	ctx.JSON(http.StatusOK, sdk.Ok4Page[vo.Executor](count, executors))
 }
@@ -137,6 +138,6 @@ func (my *ExecutorManage) DeleteBatch(ctx *gin.Context) {
 // QuerySelectBox 执行器下拉框查询
 // @Get /admin/executor/select-box
 func (my *ExecutorManage) QuerySelectBox(ctx *gin.Context) {
-	executorSelectBox := my.hzmExecutorService.QuerySelectBox()
+	executorSelectBox := my.hzmExecutorService.QuerySelectBox(tool.GetLoginUser(ctx))
 	ctx.JSON(http.StatusOK, sdk.Ok2[[]*vo.ExecutorSelectBox](executorSelectBox))
 }

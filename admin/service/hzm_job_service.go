@@ -14,11 +14,27 @@ import (
 )
 
 type HzmJobService struct {
-	hzmJobDao    dao.HzmJobDao
-	hzmJobLogDao dao.HzmJobLogDao
+	hzmJobDao                dao.HzmJobDao
+	hzmJobLogDao             dao.HzmJobLogDao
+	hzmUserDataPermissionDao dao.HzmUserDataPermissionDao
 }
 
-func (my *HzmJobService) PageJobs(param req.JobPage) (int64, []*vo.Job) {
+func (my *HzmJobService) PageJobs(loginUser *vo.User, param req.JobPage) (int64, []*vo.Job) {
+	if po.CommonUser == *loginUser.Role {
+		// 页面的执行器下拉框已经做了数据权限了，理论上选择了执行器，就无需做数据权限了
+		if param.ExecutorId == nil {
+			// 数据权限
+			executorIds, err := my.hzmUserDataPermissionDao.FindExecutorIdsByUserId(*loginUser.Id)
+			if len(executorIds) <= 0 {
+				if err != nil {
+					global.SingletonPool().Log.Error(err.Error())
+				}
+				return 0, nil
+			}
+			param.ExecutorIds = executorIds
+		}
+	}
+
 	count, jobs, err := my.hzmJobDao.Page(param)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())

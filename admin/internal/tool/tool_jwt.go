@@ -1,8 +1,10 @@
 package tool
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hongzhaomin/hzm-job/admin/internal/consts"
+	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"time"
 )
 
@@ -39,4 +41,17 @@ func ParseToken(tokenString string) (*Claims, error) {
 		return claims, nil
 	}
 	return nil, jwt.ErrInvalidKey
+}
+
+// GetUserId 获取当前登录userId
+func GetUserId(ctx *gin.Context) int64 {
+	return *GetLoginUser(ctx).Id
+}
+
+// GetLoginUser 获取当前登录用户
+func GetLoginUser(ctx *gin.Context) *vo.User {
+	if user, ok := ctx.Get("loginUser"); ok {
+		return user.(*vo.User)
+	}
+	return &vo.User{}
 }

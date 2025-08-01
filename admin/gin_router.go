@@ -10,6 +10,8 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/prop"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
+	"github.com/hongzhaomin/hzm-job/admin/po"
+	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/web/controller"
 	"github.com/hongzhaomin/hzm-job/admin/web/controller/openapi"
 	"github.com/hongzhaomin/hzm-job/core/ezconfig"
@@ -32,7 +34,7 @@ func NewGinRouter(openApi *openapi.JobServerOpenApi) *GinRouter {
 
 type GinRouter struct {
 	server         *http.Server
-	noAuthPathList []string
+	noAuthPathList []string // 无需鉴权的路径列表，支持 ** 路径匹配
 	openApi        *openapi.JobServerOpenApi
 	toHtml         controller.ToHtml
 	authController controller.AuthController
@@ -143,6 +145,8 @@ func (my *GinRouter) Start() {
 }
 
 func (my *GinRouter) Showdown() {
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := my.server.Shutdown(ctx); err != nil {
@@ -223,7 +227,12 @@ func (my *GinRouter) adminAuthMiddle(ctx *gin.Context) {
 			return
 		}
 
-		ctx.Set("userId", claims.UserId)
+		ctx.Set("loginUser", &vo.User{
+			Id:       user.Id,
+			UserName: user.UserName,
+			Role:     (*po.UserRole)(user.Role),
+			Email:    user.Email,
+		})
 	}
 
 	ctx.Next()

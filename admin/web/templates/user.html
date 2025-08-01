@@ -78,65 +78,86 @@
             loginCheck = layui.loginCheck,
             layer = layui.layer;
 
-        table.render({
-            elem: '#userTableId',
-            url: '/admin/user/page',
-            toolbar: '#toolbarUser',
-            defaultToolbar: ['filter'],
-            cols: [[
-                {type: "checkbox", width: 50},
-                {field: 'id', title: 'ID', width: 80, sort: true},
-                {field: 'userName', title: '账户'},
-                {field: 'roleName', title: '角色'},
-                {field: 'email', title: '邮件'},
-                {title: '操作', minWidth: 200, toolbar: '#operateTableBar', align: "center", fixed: "right"}
-            ]],
-            limits: [10, 15, 20, 25, 50, 100],
-            // limit: 1,
-            page: true,
-            request: {
-                pageName: 'currentPage', // 页码的参数名称，默认：page
-                limitName: 'pageSize' // 每页数据量的参数名，默认：limit
-            },
-            // response: {
-            //     // statusName: 'status', // 规定数据状态的字段名称，默认：code
-            //     // statusCode: 200, // 规定成功的状态码，默认：0
-            //     // msgName: 'hint', // 规定状态信息的字段名称，默认：msg
-            //     // countName: 'total', // 规定数据总数的字段名称，默认：count
-            //     // dataName: 'rows' // 规定数据列表的字段名称，默认：data
-            // },
-            parseData: function (res) { //res 即为原始返回的数据
-                return {
-                    "code": res.code === 200 ? 0 : res.code, // 解析接口状态
-                    "msg": res.msg, // 解析提示文本
-                    "count": res.count, // 解析数据长度
-                    "data": res.data // 解析数据列表
-                };
-            },
-            // 数据渲染完的回调
-            done: function (res) {
-                res.data.forEach(function (item, index) {
-                    if (item.id === loginCheck.getUserId()) { // 根据条件判断
-                        $('tr[data-index=' + index + '] input[type="checkbox"]')
-                            .prop('disabled', true)
-                            .next().addClass('layui-btn-disabled');
-                        // form.render('checkbox');
+        const titleCol = [
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'userName', title: '账户'},
+            {field: 'roleName', title: '角色'},
+            {field: 'email', title: '邮件'},
+        ]
 
-                        // 删除按钮置灰
-                        $('tr[data-index=' + index + '] .data-count-delete')
-                            .addClass('layui-btn-disabled')
-                            .removeClass('layui-btn-normal')
-                            .attr('disabled', true);
-                        form.render();
-                    }
-                });
+        // 获取当前登录用户信息
+        $.getJSON('/admin/user/current', function (res) {
+            let toolBar = false;
+            if (res.success) {
+                let userInfo = res.data;
+                if (userInfo.role === 0) {
+                    titleCol.unshift({type: "checkbox", width: 50});
+                    // 管理员
+                    titleCol.push({title: '操作', minWidth: 200, toolbar: '#operateTableBar', align: "center", fixed: "right"});
+                    toolBar = true;
+                }
+            } else {
+                titleCol.unshift({type: "checkbox", width: 50});
+                titleCol.push({title: '操作', minWidth: 200, toolbar: '#operateTableBar', align: "center", fixed: "right"});
+                toolBar = true;
             }
-
-            // line （行边框风格）
-            // row （列边框风格）
-            // nob （无边框风格）
-            // skin: 'line'
+            renderTable(titleCol, toolBar);
         });
+
+        function renderTable(titleCol, toolBar) {
+            table.render({
+                elem: '#userTableId',
+                url: '/admin/user/page',
+                toolbar: toolBar ? '#toolbarUser' : true,
+                defaultToolbar: ['filter'],
+                cols: [titleCol],
+                limits: [10, 15, 20, 25, 50, 100],
+                // limit: 1,
+                page: true,
+                request: {
+                    pageName: 'currentPage', // 页码的参数名称，默认：page
+                    limitName: 'pageSize' // 每页数据量的参数名，默认：limit
+                },
+                // response: {
+                //     // statusName: 'status', // 规定数据状态的字段名称，默认：code
+                //     // statusCode: 200, // 规定成功的状态码，默认：0
+                //     // msgName: 'hint', // 规定状态信息的字段名称，默认：msg
+                //     // countName: 'total', // 规定数据总数的字段名称，默认：count
+                //     // dataName: 'rows' // 规定数据列表的字段名称，默认：data
+                // },
+                parseData: function (res) { //res 即为原始返回的数据
+                    return {
+                        "code": res.code === 200 ? 0 : res.code, // 解析接口状态
+                        "msg": res.msg, // 解析提示文本
+                        "count": res.count, // 解析数据长度
+                        "data": res.data // 解析数据列表
+                    };
+                },
+                // 数据渲染完的回调
+                done: function (res) {
+                    res.data.forEach(function (item, index) {
+                        if (item.id === loginCheck.getUserId()) { // 根据条件判断
+                            $('tr[data-index=' + index + '] input[type="checkbox"]')
+                                .prop('disabled', true)
+                                .next().addClass('layui-btn-disabled');
+                            // form.render('checkbox');
+
+                            // 删除按钮置灰
+                            $('tr[data-index=' + index + '] .data-count-delete')
+                                .addClass('layui-btn-disabled')
+                                .removeClass('layui-btn-normal')
+                                .attr('disabled', true);
+                            form.render();
+                        }
+                    });
+                }
+
+                // line （行边框风格）
+                // row （列边框风格）
+                // nob （无边框风格）
+                // skin: 'line'
+            });
+        }
 
         // 监听搜索操作
         form.on('submit(data-search-btn)', function (data) {

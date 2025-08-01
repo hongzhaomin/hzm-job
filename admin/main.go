@@ -29,7 +29,7 @@ var (
 
 func main() {
 	log := global.SingletonPool().Log
-	log.Debug("初始化注册任务", "file", *filePath)
+	log.Info("hzm-job =========> admin server starting...", "file", *filePath)
 	// 注册所有任务
 	cronRegister := global.SingletonPool().CronFuncRegister
 	cronRegister.RegistryHeatBeatFunc()
@@ -45,24 +45,22 @@ func main() {
 	router := NewGinRouter(openApi)
 	router.Start()
 
-	// Wait for interrupt signal to gracefully shutdown the server with
-	// a timeout of 5 seconds.
 	quit := make(chan os.Signal, 1)
 	// kill (no params) by default sends syscall.SIGTERM
 	// kill -2 is syscall.SIGINT
 	// kill -9 is syscall.SIGKILL but can't be caught, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	global.SingletonPool().Log.Info("hzm-job =========> Shutdown Server ...")
+	log.Info("hzm-job =========> Shutdown Server ...")
 
 	// 停止gin
 	router.Showdown()
 	// 停止cron
 	cronStopSign := global.SingletonPool().Cron.Stop()
 	<-cronStopSign.Done()
-	global.SingletonPool().Log.Info("hzm-job =========> Cron stoped")
+	log.Info("hzm-job =========> Cron stoped")
 
-	global.SingletonPool().Log.Info("hzm-job =========> Server exiting")
+	log.Info("hzm-job =========> Server exiting")
 }
 
 func init() {
@@ -71,11 +69,16 @@ func init() {
 
 	// 初始化配置文件
 	mysqlBean := new(prop.MysqlProperties)
+	ldapBean := new(prop.LdapProperties)
 	ezconfig.Builder().
 		AddFiles(*filePath).
-		AddConfigBeans(mysqlBean, new(prop.HzmJobConfigBean), new(config.LogBean), new(config.CommonConfigBean)).
+		AddConfigBeans(mysqlBean, new(prop.HzmJobConfigBean), new(config.LogBean), new(config.CommonConfigBean),
+			ldapBean).
 		AddWatcher(configWatcher).
 		Build()
+
+	// 配置校验
+	ldapBean.CheckProperties()
 
 	// 初始化mysql，gorm
 	// 参考 https://github.com/go-sql-driver/mysql#dsn-data-source-name 获取详情

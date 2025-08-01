@@ -5,11 +5,12 @@ import "time"
 type JobLogPage struct {
 	BasePage
 
-	ExecutorId        *int64 `json:"executorId,omitempty" form:"executorId"`               // 执行器id
-	JobId             *int64 `json:"jobId,omitempty" form:"jobId"`                         // 任务id
-	Status            *byte  `json:"status,omitempty" form:"status"`                       // 日志状态：0-待调度；1-任务执行中；2-任务结束
-	ScheduleStartTime string `json:"scheduleStartTime,omitempty" form:"scheduleStartTime"` // 调度开始时间
-	ScheduleEndTime   string `json:"scheduleEndTime,omitempty" form:"scheduleEndTime"`     // 调度结束时间
+	ExecutorId        *int64  `json:"executorId,omitempty" form:"executorId"`               // 执行器id
+	JobId             *int64  `json:"jobId,omitempty" form:"jobId"`                         // 任务id
+	Status            *byte   `json:"status,omitempty" form:"status"`                       // 日志状态：0-待调度；1-任务执行中；2-任务结束
+	ScheduleStartTime string  `json:"scheduleStartTime,omitempty" form:"scheduleStartTime"` // 调度开始时间
+	ScheduleEndTime   string  `json:"scheduleEndTime,omitempty" form:"scheduleEndTime"`     // 调度结束时间
+	ExecutorIds       []int64 `json:"executorIds,omitempty"`                                // 执行器id，数据权限
 }
 
 type LogDelParam struct {

@@ -28,7 +28,7 @@ func (my *JobManage) PageJobs(ctx *gin.Context) {
 		return
 	}
 
-	count, jobs := my.hzmJobService.PageJobs(param)
+	count, jobs := my.hzmJobService.PageJobs(tool.GetLoginUser(ctx), param)
 
 	ctx.JSON(http.StatusOK, sdk.Ok4Page[vo.Job](count, jobs))
 }

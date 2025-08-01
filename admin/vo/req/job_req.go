@@ -3,11 +3,12 @@ package req
 type JobPage struct {
 	BasePage
 
-	ExecutorId  *int64 `json:"executorId,omitempty" form:"executorId"`   // 执行器id
-	Status      *byte  `json:"status,omitempty" form:"status"`           // 任务状态
-	Name        string `json:"name,omitempty" form:"name"`               // 任务名称
-	Description string `json:"description,omitempty" form:"description"` // 任务描述
-	Head        string `json:"head,omitempty" form:"head"`               // 负责人
+	ExecutorId  *int64  `json:"executorId,omitempty" form:"executorId"`   // 执行器id
+	Status      *byte   `json:"status,omitempty" form:"status"`           // 任务状态
+	Name        string  `json:"name,omitempty" form:"name"`               // 任务名称
+	Description string  `json:"description,omitempty" form:"description"` // 任务描述
+	Head        string  `json:"head,omitempty" form:"head"`               // 负责人
+	ExecutorIds []int64 `json:"executorIds,omitempty"`                    // 执行器id，数据权限
 }
 
 type Job struct {

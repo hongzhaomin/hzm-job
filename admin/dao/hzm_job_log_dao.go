@@ -138,6 +138,9 @@ func (my *HzmJobLogDao) Page(param req.JobLogPage) (int64, []*po.HzmJobLog, erro
 	if param.ScheduleEndTime != "" {
 		db = db.Where("schedule_time <= ?", param.ScheduleEndTime)
 	}
+	if len(param.ExecutorIds) > 0 {
+		db = db.Where("executor_id in(?)", param.ExecutorIds)
+	}
 
 	var count int64
 	db.Model(po.HzmJobLog{}).Count(&count)

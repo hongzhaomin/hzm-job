@@ -2,17 +2,32 @@ hzm:
   job:
     admin:
       port: 8888
+
+      ldap:
+        addr: ldap://121.41.22.141:389
+        dc: aganyunke.com
+        ou: group.a
+        cnkey: cn/uid
+
       mysql:
 #        host: 1.13.249.160
 #        port: 3306
 #        username: root
 #        password: kTICUG4OV3XKLvCb
 #        dbname: yunlingdemo
+
         host: 47.97.27.112
         port: 3306
         username: root
         password: LurebTGlernkAF3p
         dbname: gva-asr
+
+#        host: localhost
+#        port: 3306
+#        username: root
+#        password: xwyXNlwVflXHl2pyR1SY
+#        dbname: voip_center
+
 #      mysql:
 #        host: localhost
 #        port: 3306

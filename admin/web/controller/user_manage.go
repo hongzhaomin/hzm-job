@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/service"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
@@ -77,8 +78,7 @@ func (my *UserManage) DeleteBatch(ctx *gin.Context) {
 // Current 获取当前登录用户
 // @Get /admin/user/current
 func (my *UserManage) Current(ctx *gin.Context) {
-	userId, _ := ctx.Get("userId")
-	user := my.hzmUserService.FindUserById(userId.(int64))
+	user := my.hzmUserService.FindUserById(tool.GetUserId(ctx))
 	ctx.JSON(http.StatusOK, sdk.Ok2[vo.User](*user))
 }
 
@@ -132,8 +132,7 @@ func (my *UserManage) EditPassword(ctx *gin.Context) {
 		return
 	}
 
-	userId, _ := ctx.Get("userId")
-	if err := my.hzmUserService.EditPassword(userId.(int64), param); err != nil {
+	if err := my.hzmUserService.EditPassword(tool.GetUserId(ctx), param); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}

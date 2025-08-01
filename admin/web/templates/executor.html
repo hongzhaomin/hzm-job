@@ -82,14 +82,15 @@
             cols: [[
                 {type: "checkbox", width: 50},
                 {field: 'id', title: 'ID', width: 80, sort: true},
-                {field: 'name', title: '执行器名称'},
                 {field: 'appKey', title: 'AppKey'},
+                {field: 'name', title: '执行器名称'},
                 {
                     field: 'registryType', title: '注册方式', templet: function (d) {
                         if (d.registryType === 1) {
                             return '手动注册';
                         } else if (d.registryType === 0) {
-                            return '<span style="color: red;">自动注册</span>';
+                            // return '<span style="color: red;">自动注册</span>';
+                            return '自动注册';
                         }
                         return '';
                     }

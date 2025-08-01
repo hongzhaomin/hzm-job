@@ -3,8 +3,9 @@ package req
 type ExecutorPage struct {
 	BasePage
 
-	Name   string `json:"name,omitempty" form:"name"`     // 执行器名称
-	AppKey string `json:"appKey,omitempty" form:"appKey"` // 执行器标识
+	Name        string  `json:"name,omitempty" form:"name"`     // 执行器名称
+	AppKey      string  `json:"appKey,omitempty" form:"appKey"` // 执行器标识
+	ExecutorIds []int64 `json:"executorIds,omitempty"`          // 执行器列表，数据权限
 }
 
 type Executor struct {

@@ -81,6 +81,9 @@ func (my *HzmExecutorDao) Page(param req.ExecutorPage) (int64, []*po.HzmExecutor
 	if param.AppKey != "" {
 		db = db.Where("app_key = ?", param.AppKey)
 	}
+	if len(param.ExecutorIds) > 0 {
+		db = db.Where("id in(?)", param.ExecutorIds)
+	}
 
 	var count int64
 	db.Model(po.HzmExecutor{}).Count(&count)

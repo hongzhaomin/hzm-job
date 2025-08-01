@@ -73,12 +73,16 @@ func (my *HzmUserService) Edit(param req.User) error {
 		return errors.New(fmt.Sprintf("账户[%s]已存在", *param.UserName))
 	}
 
+	upgradeVersion := false
 	// 编辑用户
 	user.UserName = param.UserName
+	if !param.Role.Is(user.Role) {
+		// 角色变更，升级版本
+		upgradeVersion = true
+	}
 	user.Role = (*byte)(param.Role)
 	user.Email = param.Email
 	// 密码为空则不更新
-	upgradeVersion := false
 	if param.Password != nil && *param.Password != "" {
 		newPassword := tool.MD5(*param.Password)
 		if *user.Password != newPassword {
