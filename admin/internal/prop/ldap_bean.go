@@ -12,9 +12,13 @@ type LdapProperties struct {
 	ezconfig.ConfigurationProperties `prefix:"hzm.job.admin.ldap"`
 
 	Addr  string `alias:"addr" default:""`    // ldap地址
-	Dc    string `alias:"dc" default:""`      // 域组件，表示域名的一部分，通常用于构建目录树的根节点或顶级结构
-	Group string `alias:"ou" default:""`      // 组织单元
-	CnKey string `alias:"cnkey" default:"cn"` // 用户条目名称（cn/uid，默认cn）
+	Dc    string `alias:"dc" default:""`      // 域组件，表示域名的一部分，通常用于构建目录树的根节点或顶级结构（必填）
+	Group string `alias:"ou" default:""`      // 组织单元（可选）
+	CnKey string `alias:"cnkey" default:"cn"` // 用户条目名称（cn/uid，可选，默认cn）
+}
+
+func (my *LdapProperties) Enabled() bool {
+	return my.Addr != ""
 }
 
 func (my *LdapProperties) CheckProperties() {

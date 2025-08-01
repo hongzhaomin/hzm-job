@@ -1,4 +1,4 @@
-package main
+package hzmjob
 
 import (
 	"encoding/json"

@@ -36,6 +36,7 @@ CREATE TABLE `hzm_executor`
     `id`            bigint(20) unsigned NOT NULL AUTO_INCREMENT,
     `name`          varchar(128)      DEFAULT NULL COMMENT '执行器名称',
     `app_key`       varchar(128)      DEFAULT NULL COMMENT '执行器标识',
+    `app_secret`    varchar(128)      DEFAULT NULL COMMENT '执行器密钥，鉴权需要',
     `registry_type` tinyint(2) DEFAULT 0 COMMENT '注册方式：0-自动；1-手动',
     `valid`         tinyint(2) unsigned NOT NULL DEFAULT 1 COMMENT '是否可用：1-可用；0-不可用',
     `create_time`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

@@ -6,10 +6,12 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/dao"
 	"github.com/hongzhaomin/hzm-job/admin/internal/consts"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
+	"github.com/hongzhaomin/hzm-job/admin/internal/prop"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
+	"github.com/hongzhaomin/hzm-job/core/ezconfig"
 )
 
 type HzmUserService struct {
@@ -235,6 +237,53 @@ func (my *HzmUserService) EditPassword(userId int64, param req.EditPasswordParam
 }
 
 func (my *HzmUserService) Login(param req.Login) (*vo.LoginUser, error) {
+	if ezconfig.Get[*prop.LdapProperties]().Enabled() {
+		user, err := my.hzmUserDao.FindByUserName(&param.UserName)
+		if err != nil {
+			global.SingletonPool().Log.Error(err.Error())
+			return nil, consts.ServerError
+		}
+
+		if user != nil && *user.Password == tool.MD5(param.Password) {
+			// 本地用户密码正确，直接返回，无需再验证ldap
+			return my.doLogin(user)
+		}
+
+		// 本地用户不存在，或者本地用户密码不正确，均需要验证ldap
+		// 再创建本地用户，或者更新本地用户密码
+		err = tool.LoginCheck2Ldap(param.UserName, param.Password)
+		if err != nil {
+			return nil, errors.New("用户名或密码不正确")
+		}
+		// ldap 验证成功
+		if user != nil {
+			// 更新本地用户密码
+			newPassword := tool.MD5(param.Password)
+			user.Password = &newPassword
+			if err = my.hzmUserDao.Update(user, true); err != nil {
+				global.SingletonPool().Log.Error(err.Error())
+				return nil, consts.ServerError
+			}
+		} else {
+			// 创建本地用户
+			password := tool.MD5(param.Password)
+			user = &po.HzmUser{
+				UserName: &param.UserName,
+				Password: &password,
+				Role:     (*byte)(po.Admin.ToPtr()),
+			}
+			if err = my.hzmUserDao.Save(user); err != nil {
+				global.SingletonPool().Log.Error(err.Error())
+				return nil, consts.ServerError
+			}
+		}
+		return my.doLogin(user)
+	}
+
+	return my.loginCheck4Local(param)
+}
+
+func (my *HzmUserService) loginCheck4Local(param req.Login) (*vo.LoginUser, error) {
 	user, err := my.hzmUserDao.FindByUserName(&param.UserName)
 	if user == nil {
 		if err != nil {
@@ -246,7 +295,10 @@ func (my *HzmUserService) Login(param req.Login) (*vo.LoginUser, error) {
 	if *user.Password != tool.MD5(param.Password) {
 		return nil, errors.New("密码不正确")
 	}
+	return my.doLogin(user)
+}
 
+func (my *HzmUserService) doLogin(user *po.HzmUser) (*vo.LoginUser, error) {
 	token, err := tool.GenerateToken(*user.Id, *user.TokenVersion)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())

@@ -28,6 +28,12 @@ func GetNameByRole(role *byte) *string {
 	return &name
 }
 
+func (my UserRole) ToPtr() *UserRole {
+	p := new(UserRole)
+	*p = my
+	return p
+}
+
 func (my UserRole) Is(role *byte) bool {
 	if role == nil {
 		return false
