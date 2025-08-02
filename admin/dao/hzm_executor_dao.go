@@ -66,7 +66,7 @@ func (my *HzmExecutorDao) FindByAppKey(appKey string) (*po.HzmExecutor, error) {
 
 func (my *HzmExecutorDao) Save(executor *po.HzmExecutor) error {
 	return global.SingletonPool().Mysql.
-		Select("Name", "AppKey", "RegistryType").
+		Select("Name", "AppKey", "AppSecret", "RegistryType").
 		Create(executor).
 		Error
 }
@@ -106,6 +106,18 @@ func (my *HzmExecutorDao) LogicDeleteBatch(ids []int64) error {
 	if len(ids) <= 0 {
 		return nil
 	}
+	var executors []*po.HzmExecutor
+	err := global.SingletonPool().Mysql.Select("app_key").
+		Where("valid = 1 and id in (?)", ids).
+		Find(&executors).
+		Error
+	if err != nil {
+		return err
+	}
+	for _, executor := range executors {
+		global.SingletonPool().ExeSecretCache.DeleteByAppKey(*executor.AppKey)
+	}
+
 	return global.SingletonPool().Mysql.
 		Model(&po.HzmExecutor{}).
 		Where("valid = 1 and id in (?)", ids).

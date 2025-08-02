@@ -5,6 +5,7 @@ type HzmExecutor struct {
 	BasePo
 	Name         *string // 执行器名称
 	AppKey       *string // 执行器标识
+	AppSecret    *string // 执行器密钥，鉴权需要
 	RegistryType *byte   // 注册方式：0-自动；1-手动
 }
 

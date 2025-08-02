@@ -5,32 +5,43 @@ import (
 	"encoding/json"
 	"github.com/hongzhaomin/hzm-job/admin/internal/consts"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
-	"github.com/hongzhaomin/hzm-job/core/config"
-	"github.com/hongzhaomin/hzm-job/core/ezconfig"
+	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/core/sdk"
 )
 
 // HeartBeat2Client 调用执行器心跳检测接口
-func HeartBeat2Client(address string) error {
-	commonConfig := ezconfig.Get[*config.CommonConfigBean]()
-	accessToken := commonConfig.AccessToken // token
+func HeartBeat2Client(address string, appSecret *string) error {
+	var accessToken string
+	if appSecret != nil {
+		accessToken = *appSecret
+	}
 	req := sdk.NewBaseParam[sdk.Result[*bool]](address+consts.HeartBeat, accessToken)
 	_, err := Post[bool](req)
 	return err
 }
 
 // JobHandle2Client 调用执行器任务执行接口
-func JobHandle2Client(getReq func(url, accessToken string) *JobHandleReq) (*bool, error) {
-	commonConfig := ezconfig.Get[*config.CommonConfigBean]()
-	accessToken := commonConfig.AccessToken // token
-	req := getReq(consts.JobHandle, accessToken)
+func JobHandle2Client(appSecret *string, node *po.HzmExecutorNode, jobLog *po.HzmJobLog, job *po.HzmJob) (*bool, error) {
+	var accessToken string
+	if appSecret != nil {
+		accessToken = *appSecret
+	}
+	req := &JobHandleReq{
+		BaseParam: sdk.NewBaseParam[sdk.Result[*bool]](*node.Address+consts.JobHandle, accessToken),
+		LogId:     jobLog.Id,
+		JobId:     job.Id,
+		JobName:   job.Name,
+		JobParams: job.Parameters,
+	}
 	return Post[bool](req)
 }
 
 // JobCancel2Client 调用执行器任务取消接口
-func JobCancel2Client(address string, jobLogId *int64) error {
-	commonConfig := ezconfig.Get[*config.CommonConfigBean]()
-	accessToken := commonConfig.AccessToken // token
+func JobCancel2Client(address string, jobLogId *int64, appSecret *string) error {
+	var accessToken string
+	if appSecret != nil {
+		accessToken = *appSecret
+	}
 	req := &JobCancelReq{
 		BaseParam: sdk.NewBaseParam[sdk.Result[*bool]](address+consts.JobCancel, accessToken),
 		LogId:     jobLogId,

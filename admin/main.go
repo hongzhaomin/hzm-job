@@ -10,6 +10,7 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/internal/prop"
 	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/admin/service"
+	"github.com/hongzhaomin/hzm-job/admin/service/cache"
 	"github.com/hongzhaomin/hzm-job/admin/web/controller/openapi"
 	"github.com/hongzhaomin/hzm-job/core/config"
 	"github.com/hongzhaomin/hzm-job/core/ezconfig"
@@ -72,8 +73,7 @@ func init() {
 	ldapBean := new(prop.LdapProperties)
 	ezconfig.Builder().
 		AddFiles(*filePath).
-		AddConfigBeans(mysqlBean, new(prop.HzmJobConfigBean), new(config.LogBean), new(config.CommonConfigBean),
-			ldapBean).
+		AddConfigBeans(mysqlBean, new(prop.HzmJobConfigBean), new(config.LogBean), ldapBean).
 		AddWatcher(configWatcher).
 		Build()
 
@@ -96,16 +96,12 @@ func init() {
 
 	// 创建日志对象
 	log, logLevelVar := sdk.NewSlog()
-
 	// 创建 cron 定时任务对象
 	c := cron.New(cron.WithSeconds())
-
 	// 创建远程请求工具
 	remotingUtil := sdk.NewRemotingUtil()
-
 	// 创建定时任务注册器
 	cronRegister := new(service.CronFuncRegister)
-
 	// 创建执行器节点选择器
 	pollSelector := service.NewPollExecutorNodeSelector()
 	randSelector := new(service.RandomExecutorNodeSelector)
@@ -115,6 +111,8 @@ func init() {
 		randSelector.StrategyType():    randSelector,
 		errNextSelector.StrategyType(): errNextSelector,
 	}
+	// 创建缓存对象
+	secretCache := cache.NewExecutorSecretCache()
 
 	// 存储全局对象池
 	global.Store(&global.Obj{
@@ -125,6 +123,7 @@ func init() {
 		RemotingUtil:     remotingUtil,
 		CronFuncRegister: cronRegister,
 		NodeSelectorMap:  nodeSelectorMap,
+		ExeSecretCache:   secretCache,
 	})
 }
 

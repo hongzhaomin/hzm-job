@@ -156,7 +156,30 @@ func (my *HzmLogService) DeleteByQuery(param req.LogDelParam) error {
 }
 
 func (my *HzmLogService) StopJob(param req.StopJobParam) error {
-	err := internal.JobCancel2Client(*param.Address, param.Id)
+	jobLog, err := my.hzmJobLogDao.FindById(*param.Id)
+	if jobLog == nil {
+		if err != nil {
+			global.SingletonPool().Log.Error("查询任务调度日志失败", "err", err)
+			return consts.ServerError
+		}
+		return errors.New("任务调度日志不存在")
+	}
+
+	executorId := jobLog.ExecutorId
+	if executorId == nil {
+		return errors.New("任务调度日志执行器不存在")
+	}
+
+	executor, err := my.hzmExecutorDao.FindById(*executorId)
+	if executor == nil {
+		if err != nil {
+			global.SingletonPool().Log.Error("查询执行器失败", "err", err)
+			return consts.ServerError
+		}
+		return errors.New("执行器不存在或已被删除")
+	}
+
+	err = internal.JobCancel2Client(*param.Address, param.Id, executor.AppSecret)
 	if err != nil {
 		global.SingletonPool().Log.Error("终止任务失败",
 			"jobLogId", param.Id,

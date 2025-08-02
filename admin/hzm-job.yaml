@@ -6,8 +6,8 @@ hzm:
       ldap:
         addr: ldap://121.41.22.141:389
         dc: aganyunke.com
-        ou: group.a
-        cnkey: cn/uid
+#        ou: group.a
+#        cnkey: cn
 
       mysql:
 #        host: 1.13.249.160
@@ -37,7 +37,6 @@ hzm:
 
     # 通用配置
     common:
-      accessToken: 123456
       # 日志配置
       log:
         level: info

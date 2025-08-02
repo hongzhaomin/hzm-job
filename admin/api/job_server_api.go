@@ -21,6 +21,7 @@ type RegistryReq struct {
 
 type JobResultReq struct {
 	LogId       *int64  `json:"logId,omitempty"`       // 任务日志id
+	AppKey      *string `json:"appKey,omitempty"`      // 执行器服务名称标识
 	HandlerCode *int    `json:"handlerCode,omitempty"` // 任务处理编码，200标识成功，其他失败
 	HandlerMsg  *string `json:"handlerMsg,omitempty"`  // 任务处理结果消息
 }

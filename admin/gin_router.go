@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/hongzhaomin/hzm-job/admin/dao"
 	"github.com/hongzhaomin/hzm-job/admin/internal/consts"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
@@ -12,10 +13,12 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
+	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"github.com/hongzhaomin/hzm-job/admin/web/controller"
 	"github.com/hongzhaomin/hzm-job/admin/web/controller/openapi"
 	"github.com/hongzhaomin/hzm-job/core/ezconfig"
 	"github.com/hongzhaomin/hzm-job/core/sdk"
+	"io"
 	"net/http"
 	"slices"
 	"strings"
@@ -74,6 +77,7 @@ func (my *GinRouter) webGroup(webGroup *gin.RouterGroup) {
 
 	// 执行器管理
 	webGroup.GET("/executor/page", my.executorManage.PageExecutors)
+	webGroup.POST("/executor/generate-secret", my.executorManage.GenerateSecret)
 	webGroup.POST("/executor/add", my.executorManage.Add)
 	webGroup.POST("/executor/edit", my.executorManage.Edit)
 	webGroup.POST("/executor/del", my.executorManage.DeleteBatch)
@@ -188,7 +192,27 @@ func (my *GinRouter) htmlJump(engine *gin.Engine) {
 
 func (my *GinRouter) apiAuthMiddle(ctx *gin.Context) {
 	// openapi鉴权中间件
-	// todo 服务端颁发一个token给执行器，执行器每个接口请求都把执行器标识带过来，调度中心本地缓存执行器标识的token进行鉴权
+	// 调度中心颁发一个token给执行器，执行器每个接口请求都把执行器标识带过来，调度中心本地缓存执行器标识的token进行鉴权
+	var param req.ApiAuthParam
+	if err := ctx.ShouldBindBodyWith(&param, binding.JSON); err != nil && !errors.Is(err, io.EOF) {
+		global.SingletonPool().Log.Error("api接口鉴权失败", "err", err.Error())
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, sdk.Fail(err.Error()))
+		return
+	}
+	appKey := param.AppKey
+	if appKey == nil || *appKey == "" {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, sdk.Fail("AppKey不能为空"))
+		return
+	}
+
+	appSecret := global.SingletonPool().ExeSecretCache.GetSecretByAppKey(*appKey)
+	if appSecret != "" {
+		accessToken := ctx.GetHeader(consts.TokenHeaderKey)
+		if appSecret != accessToken {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, sdk.Fail("执行器密钥不正确"))
+			return
+		}
+	}
 
 	// 接口处理
 	ctx.Next()

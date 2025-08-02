@@ -29,7 +29,7 @@ func init() {
 	// 初始化配置文件
 	ezconfig.Builder().
 		AddFiles(*filePath).
-		AddConfigBeans(new(config.LogBean), new(config.CommonConfigBean), new(prop.HzmJobConfigBean)).
+		AddConfigBeans(new(config.LogBean), new(prop.HzmJobConfigBean)).
 		AddWatcher(configWatcher).
 		Build()
 
@@ -61,8 +61,8 @@ func init() {
 
 	// 延迟检测服务状态
 	time.Sleep(100 * time.Millisecond)
-	commonConfig := ezconfig.Get[*config.CommonConfigBean]()
-	accessToken := commonConfig.AccessToken // token
+	clientConfig := ezconfig.Get[*prop.HzmJobConfigBean]()
+	accessToken := clientConfig.AppSecret // token
 	url := fmt.Sprintf("http://localhost:%s", ezconfig.Get[*prop.HzmJobConfigBean]().Port) + path.Join(consts.BaseUrl, consts.HeartBeatUrl)
 	ok, err := internal.Post[bool](sdk.NewBaseParam[sdk.Result[*bool]](url, accessToken))
 	if err == nil && ok != nil && *ok {
@@ -70,6 +70,20 @@ func init() {
 		err = internal.Registry2Admin()
 		if err != nil {
 			global.SingletonPool().Log.Error("hzm-job: 执行器自动注册失败", "err", err)
+			// 注册失败，10s后进行无限重试
+			go func() {
+				ticker := time.NewTicker(10 * time.Second)
+				defer ticker.Stop()
+				for {
+					<-ticker.C
+					err = internal.Registry2Admin()
+					if err == nil {
+						break
+					}
+					// 注册失败，10s后进行无限重试
+					global.SingletonPool().Log.Error("hzm-job: 执行器自动注册失败", "err", err)
+				}
+			}()
 		}
 	}
 }

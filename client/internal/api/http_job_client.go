@@ -9,7 +9,6 @@ import (
 	"github.com/hongzhaomin/hzm-job/client/internal/consts"
 	"github.com/hongzhaomin/hzm-job/client/internal/global"
 	"github.com/hongzhaomin/hzm-job/client/internal/prop"
-	"github.com/hongzhaomin/hzm-job/core/config"
 	"github.com/hongzhaomin/hzm-job/core/ezconfig"
 	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"io"
@@ -155,10 +154,10 @@ func commonHandlerFun[P any](res http.ResponseWriter, req *http.Request, fn func
 	}
 
 	// 鉴权：如果未配置token，则认为不需要鉴权
-	commonConfig := ezconfig.Get[*config.CommonConfigBean]()
-	if commonConfig.AccessToken != "" {
+	clientConfig := ezconfig.Get[*prop.HzmJobConfigBean]()
+	if clientConfig.AppSecret != "" {
 		accessToken := req.Header.Get(sdk.TokenHeaderKey)
-		if commonConfig.AccessToken != accessToken {
+		if clientConfig.AppSecret != accessToken {
 			http.Error(res, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}

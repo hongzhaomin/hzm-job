@@ -34,6 +34,13 @@ func (my *ExecutorManage) PageExecutors(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, sdk.Ok4Page[vo.Executor](count, executors))
 }
 
+// GenerateSecret 如需鉴权，生成appSecret
+// @Post /admin/executor/generate-secret
+func (my *ExecutorManage) GenerateSecret(ctx *gin.Context) {
+	secret := tool.RandStr(32)
+	ctx.JSON(http.StatusOK, sdk.Ok2(secret))
+}
+
 // Add 新增执行器
 // @Post /admin/executor/add
 func (my *ExecutorManage) Add(ctx *gin.Context) {

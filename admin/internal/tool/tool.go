@@ -3,8 +3,12 @@ package tool
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"math/rand"
 	"reflect"
+	"time"
 )
+
+const letterAndNumber = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // 字母和数字
 
 func BeanConv[A any, B any](as []*A, convFunc func(a *A) (*B, bool)) []*B {
 	if len(as) <= 0 {
@@ -61,4 +65,15 @@ func isNil(a any) bool {
 func MD5(data string) string {
 	resultArr := md5.Sum([]byte(data))
 	return hex.EncodeToString(resultArr[:])
+}
+
+// RandStr 生成随机字符串
+func RandStr(length int) string {
+	bs := []byte(letterAndNumber)
+	var result []byte
+	rand.New(rand.NewSource(time.Now().UnixNano() + int64(rand.Intn(100))))
+	for i := 0; i < length; i++ {
+		result = append(result, bs[rand.Intn(len(bs))])
+	}
+	return string(result)
 }

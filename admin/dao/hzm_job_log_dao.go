@@ -201,3 +201,15 @@ func (my *HzmJobLogDao) DeleteByQuery(param req.LogDelDaoParam) error {
 	}
 	return dbBase.Unscoped().Delete(&po.HzmJobLog{}).Error
 }
+
+func (my *HzmJobLogDao) FindById(id int64) (*po.HzmJobLog, error) {
+	var log po.HzmJobLog
+	err := global.SingletonPool().Mysql.
+		Where("valid = 1 and id = ?", id).
+		First(&log).
+		Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &log, err
+}

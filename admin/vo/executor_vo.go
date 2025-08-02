@@ -4,6 +4,7 @@ type Executor struct {
 	Id              *int64  `json:"id,omitempty"`           // 执行器id
 	Name            *string `json:"name,omitempty"`         // 执行器名称
 	AppKey          *string `json:"appKey,omitempty"`       // 执行器标识
+	AppSecret       *string `json:"appSecret,omitempty"`    // 执行器密钥，鉴权需要
 	RegistryType    *byte   `json:"registryType,omitempty"` // 注册方式：0-自动；1-手动
 	OnlineNodeCount int     `json:"onlineNodeCount"`        // 在线节点数量
 }

@@ -46,6 +46,7 @@ func (my *HzmExecutorService) PageExecutors(loginUser *vo.User, param req.Execut
 				Id:           executor.Id,
 				Name:         executor.Name,
 				AppKey:       executor.AppKey,
+				AppSecret:    executor.AppSecret,
 				RegistryType: executor.RegistryType,
 			}, true
 		})
@@ -85,6 +86,7 @@ func (my *HzmExecutorService) Add(param req.Executor) error {
 	executor := &po.HzmExecutor{
 		Name:         param.Name,
 		AppKey:       param.AppKey,
+		AppSecret:    param.AppSecret,
 		RegistryType: param.RegistryType,
 	}
 	if err = my.hzmExecutorDao.Save(executor); err != nil {
@@ -138,6 +140,13 @@ func (my *HzmExecutorService) Edit(param req.Executor) error {
 	executor.AppKey = param.AppKey
 	executor.Name = param.Name
 	executor.RegistryType = param.RegistryType
+	if executor.AppSecret == nil || *executor.AppSecret == "" {
+		if param.AppSecret != nil && *param.AppSecret != "" {
+			// 执行器新增的时候没有生成secret进行鉴权，编辑的时候允许添加
+			executor.AppSecret = param.AppSecret
+			global.SingletonPool().ExeSecretCache.DeleteByAppKey(*executor.AppKey)
+		}
+	}
 	if err = my.hzmExecutorDao.Update(executor); err != nil {
 		global.SingletonPool().Log.Error(err.Error())
 		return consts.ServerError

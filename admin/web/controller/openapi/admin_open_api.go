@@ -3,6 +3,7 @@ package openapi
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/hongzhaomin/hzm-job/admin/api"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/core/sdk"
@@ -23,7 +24,7 @@ type JobServerOpenApi struct {
 // @Post /api/admin/registry
 func (my *JobServerOpenApi) Registry(ctx *gin.Context) {
 	var req api.RegistryReq
-	if err := ctx.ShouldBind(&req); err != nil && !errors.Is(err, io.EOF) {
+	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil && !errors.Is(err, io.EOF) {
 		global.SingletonPool().Log.Error("客户端注册失败", "err", err.Error())
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
@@ -38,7 +39,7 @@ func (my *JobServerOpenApi) Registry(ctx *gin.Context) {
 // @Post /api/admin/offline
 func (my *JobServerOpenApi) Offline(ctx *gin.Context) {
 	var req api.RegistryReq
-	if err := ctx.ShouldBind(&req); err != nil && !errors.Is(err, io.EOF) {
+	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil && !errors.Is(err, io.EOF) {
 		global.SingletonPool().Log.Error("客户端下线失败", "err", err.Error())
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
@@ -54,7 +55,7 @@ func (my *JobServerOpenApi) Offline(ctx *gin.Context) {
 // @Post /api/admin/callback
 func (my *JobServerOpenApi) Callback(ctx *gin.Context) {
 	var req api.JobResultReq
-	if err := ctx.ShouldBind(&req); err != nil && !errors.Is(err, io.EOF) {
+	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil && !errors.Is(err, io.EOF) {
 		global.SingletonPool().Log.Error("任务完成回调失败", "err", err.Error())
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return

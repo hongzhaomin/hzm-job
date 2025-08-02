@@ -12,6 +12,8 @@ const (
 	HeartBeat = "/api/heart-beat"
 	JobHandle = "/api/job-handle"
 	JobCancel = "/api/job-cancel"
+
+	TokenHeaderKey = "HZM-JOB-ACCESS-TOKEN"
 )
 
 var (

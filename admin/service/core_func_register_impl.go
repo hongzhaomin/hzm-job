@@ -7,7 +7,6 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global/iface"
 	"github.com/hongzhaomin/hzm-job/admin/po"
-	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"github.com/hongzhaomin/hzm-job/core/tools"
 	"github.com/robfig/cron/v3"
 )
@@ -25,7 +24,6 @@ type CronFuncRegister struct {
 // RegistryHeatBeatFunc 注册心跳任务
 func (my *CronFuncRegister) RegistryHeatBeatFunc() {
 	// 注册心跳检测任务，每 5s 执行一次
-	// fixme 加个本地缓存进行优化
 	_, err := global.SingletonPool().Cron.AddFunc("0/5 * * * * ?", func() {
 		defer func() {
 			if e := recover(); e != nil {
@@ -63,7 +61,7 @@ func (my *CronFuncRegister) RegistryHeatBeatFunc() {
 					}()
 					// 当执行器是自动录入时，离线节点尝试再连接一次，连不上会被删除
 					if po.AutoRegistry.Is(executor.RegistryType) && po.NodeOffline.Is(node.Status) {
-						if err = internal.HeartBeat2Client(*node.Address); err != nil {
+						if err = internal.HeartBeat2Client(*node.Address, executor.AppSecret); err != nil {
 							global.SingletonPool().Log.Error("心跳检测失败", "nodeAddress", *node.Address, "err", err)
 							// 连不上，就删除掉
 							if err = my.hzmExecutorNodeDao.Delete(node.Id); err != nil {
@@ -89,7 +87,7 @@ func (my *CronFuncRegister) RegistryHeatBeatFunc() {
 						}
 						return
 					}
-					if err = internal.HeartBeat2Client(*node.Address); err != nil {
+					if err = internal.HeartBeat2Client(*node.Address, executor.AppSecret); err != nil {
 						global.SingletonPool().Log.Error("心跳检测失败", "nodeAddress", *node.Address, "err", err)
 						if po.NodeOnline.Is(node.Status) {
 							// 标记该节点为离线
@@ -244,15 +242,7 @@ func (my *CronFuncRegister) WrapperRegistryJobFunc(job *po.HzmJob, executorNodeI
 		}
 
 		// 远程调度执行器任务
-		success, err2 := internal.JobHandle2Client(func(url, accessToken string) *internal.JobHandleReq {
-			return &internal.JobHandleReq{
-				BaseParam: sdk.NewBaseParam[sdk.Result[*bool]](*node.Address+url, accessToken),
-				LogId:     jobLog.Id,
-				JobId:     job.Id,
-				JobName:   job.Name,
-				JobParams: job.Parameters,
-			}
-		})
+		success, err2 := internal.JobHandle2Client(executor.AppSecret, node, jobLog, job)
 		if success == nil || !*success || err2 != nil {
 			// 请求失败，结束任务日志，调度失败
 			if err = my.jobLogErrorFinish(*jobLog.Id, fmt.Sprintf("调度失败: %s", err2.Error())); err != nil {

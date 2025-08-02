@@ -5,11 +5,11 @@ hzm:
       port: 7777
       adminAddress: http://localhost:8888
       appKey: test
+      appSecret:
 #      localhost: 192.168.5.125
 
     # 通用配置
     common:
-      accessToken: 123456
       # 日志配置
       log:
         level: debug
