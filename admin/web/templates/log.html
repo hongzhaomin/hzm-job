@@ -239,16 +239,16 @@
                 defaultToolbar: ['filter'],
                 cols: [[
                     {field: 'id', title: 'ID', width: 60, sort: true},
-                    {field: 'jobId', title: '任务id', hide: true},
-                    {field: 'jobDescription', title: '任务描述'},
-                    {field: 'jobName', title: '任务名称', hide: true},
-                    {field: 'parameters', title: '任务参数', hide: true},
-                    {field: 'executorId', title: '执行器id', hide: true},
-                    {field: 'executorName', title: '执行器名称'},
-                    {field: 'executorNodeId', title: '执行器节点id', hide: true},
-                    {field: 'executorNodeAddress', title: '执行器节点地址', width: 190},
+                    {field: 'jobId', title: '任务id', minWidth: 70, hide: true},
+                    {field: 'jobDescription', title: '任务描述', minWidth: 200},
+                    {field: 'jobName', title: '任务名称', minWidth: 180, hide: true},
+                    {field: 'parameters', title: '任务参数', minWidth: 150, hide: true},
+                    {field: 'executorId', title: '执行器id', minWidth: 70, hide: true},
+                    {field: 'executorName', title: '执行器名称', minWidth: 190},
+                    {field: 'executorNodeId', title: '执行器节点id', minWidth: 70, hide: true},
+                    {field: 'executorNodeAddress', title: '执行器节点地址', minWidth: 200},
                     {
-                        field: 'status', title: '状态', templet: function (d) {
+                        field: 'status', title: '状态', minWidth: 90, templet: function (d) {
                             if (d.status === 1) {
                                 return '<span class="layui-badge layui-bg-blue">执行中</span>';
                             } else if (d.status === 2) {
@@ -257,9 +257,9 @@
                             return '';
                         }
                     },
-                    {field: 'scheduleTime', title: '调度时间', width: 160},
+                    {field: 'scheduleTime', title: '调度时间', minWidth: 160},
                     {
-                        field: 'handleCode', title: '执行结果', width: 90, templet: function (d) {
+                        field: 'handleCode', title: '执行结果', minWidth: 90, templet: function (d) {
                             if (d.handleCode && d.handleCode === 200) {
                                 return '<span class="layui-badge layui-bg-green">成功</span>';
                             } else if (d.handleCode && d.handleCode !== 200) {
@@ -268,8 +268,8 @@
                             return '';
                         }
                     },
-                    {field: 'handleMsg', title: '结果消息', width: 160},
-                    {field: 'finishTime', title: '完成时间', width: 160},
+                    {field: 'handleMsg', title: '结果消息', minWidth: 160},
+                    {field: 'finishTime', title: '完成时间', minWidth: 160},
                     {
                         title: '操作',
                         minWidth: 100,
