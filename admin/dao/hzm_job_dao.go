@@ -13,7 +13,7 @@ type HzmJobDao struct{}
 func (my *HzmJobDao) Save(job *po.HzmJob) error {
 	return global.SingletonPool().Mysql.
 		Select("ExecutorId", "Name", "ScheduleType", "ScheduleValue",
-			"Parameters", "Name", "Head", "RouterStrategy").
+			"Parameters", "Description", "Head", "RouterStrategy").
 		Create(job).
 		Error
 }

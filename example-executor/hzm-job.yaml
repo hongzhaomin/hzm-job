@@ -4,8 +4,8 @@ hzm:
     client:
       port: 7777
       adminAddress: http://localhost:8888
-      appKey: test
-      appSecret: fNWVwS1XpfosmxgajUjTgFzaovTtVc5Q
+      appKey: local-example
+      appSecret: wPFExZtJV4mnTqk5q1CcBoBIaWuo1ams
 #      localhost: 192.168.5.125
 
     # 通用配置

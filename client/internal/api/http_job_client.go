@@ -134,6 +134,7 @@ func (my *HttpJobClient) Stop() {
 	if err != nil {
 		global.SingletonPool().Log.Error("embed http serve shutdown error", "err", err)
 	}
+	global.SingletonPool().Log.Info("embed http serve closed")
 }
 
 func commonHandlerFun[P any](res http.ResponseWriter, req *http.Request, fn func(param P) (any, error)) {

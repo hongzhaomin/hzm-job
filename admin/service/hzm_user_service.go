@@ -299,7 +299,11 @@ func (my *HzmUserService) loginCheck4Local(param req.Login) (*vo.LoginUser, erro
 }
 
 func (my *HzmUserService) doLogin(user *po.HzmUser) (*vo.LoginUser, error) {
-	token, err := tool.GenerateToken(*user.Id, *user.TokenVersion)
+	var tokenVersion int64
+	if user.TokenVersion != nil {
+		tokenVersion = *user.TokenVersion
+	}
+	token, err := tool.GenerateToken(*user.Id, tokenVersion)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())
 		return nil, consts.ServerError
