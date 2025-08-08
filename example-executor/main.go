@@ -31,11 +31,12 @@ func main() {
 
 	hzmjob.AddJobs(&JobTest{})
 
-	fmt.Println("执行器启动成功")
+	hzmjob.Enable()
 
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt)
 	<-sigint
+	hzmjob.Close()
 }
 
 type JobTest struct {
@@ -43,16 +44,16 @@ type JobTest struct {
 }
 
 func (my *JobTest) DoHandle(_ context.Context, param *Req) error {
-	fmt.Println("====== cancelableJobFuncTest ========> 任务开始执行")
+	fmt.Println("====== commonJobFuncTest ========> 任务开始执行")
 	paramJson, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println("====== cancelableJobFuncTest ========> 模拟任务执行:", string(paramJson))
+	fmt.Println("====== commonJobFuncTest ========> 模拟任务执行:", string(paramJson))
 	time.Sleep(time.Second * 3)
 
-	fmt.Println("====== cancelableJobFuncTest ========> 任务执行结束:", string(paramJson))
+	fmt.Println("====== commonJobFuncTest ========> 任务执行结束:", string(paramJson))
 	return nil
 }
 

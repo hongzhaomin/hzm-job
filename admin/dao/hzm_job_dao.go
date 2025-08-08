@@ -157,3 +157,19 @@ func (my *HzmJobDao) FindByIds(ids []int64) ([]*po.HzmJob, error) {
 		Error
 	return jobs, err
 }
+
+func (my *HzmJobDao) CountStatistics() (int64, int64, error) {
+	db := global.SingletonPool().Mysql
+	var total int64
+	err := db.Model(po.HzmJob{}).
+		Where("valid = 1").
+		Count(&total).
+		Error
+
+	var running int64
+	err = db.Model(po.HzmJob{}).
+		Where("valid = 1 and status = ?", po.JobRunning).
+		Count(&running).
+		Error
+	return total, running, err
+}

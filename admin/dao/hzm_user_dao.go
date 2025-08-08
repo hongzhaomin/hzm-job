@@ -105,3 +105,38 @@ func (my *HzmUserDao) DeleteBatch(ids []int64) error {
 		Delete(&po.HzmUser{}).
 		Error
 }
+
+func (my *HzmUserDao) FindByIds(ids []int64) ([]*po.HzmUser, error) {
+	if len(ids) <= 0 {
+		return nil, nil
+	}
+	var users []*po.HzmUser
+	err := global.SingletonPool().Mysql.
+		Where("valid = 1 and id in(?)", ids).
+		First(&users).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return users, err
+}
+
+func (my *HzmUserDao) FindUserNameMap(userIds []int64) map[int64]string {
+	if len(userIds) <= 0 {
+		return nil
+	}
+
+	users, err := my.FindByIds(userIds)
+	if err != nil {
+		global.SingletonPool().Log.Error("查询用户失败", "executorIds", userIds, "err", err)
+		return nil
+	}
+
+	id2NameMap := make(map[int64]string, len(users))
+	for _, user := range users {
+		if user != nil {
+			id2NameMap[*user.Id] = *user.UserName
+		}
+	}
+	return id2NameMap
+}

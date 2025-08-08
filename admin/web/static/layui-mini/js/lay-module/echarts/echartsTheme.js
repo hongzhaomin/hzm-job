@@ -4,7 +4,7 @@ layui.define(function(exports) {
             "color": [
                 "#3fb1e3",
                 "#6be6c1",
-                "#626c91",
+                "#f40808",
                 "#a0a7e6",
                 "#c4ebad",
                 "#96dee8"

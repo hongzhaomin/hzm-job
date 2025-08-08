@@ -2,7 +2,9 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po/cleartype"
 	"github.com/hongzhaomin/hzm-job/admin/service"
@@ -11,6 +13,7 @@ import (
 	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"io"
 	"net/http"
+	"time"
 )
 
 // LogManage 任务调度日志管理
@@ -59,6 +62,16 @@ func (my *LogManage) DeleteByQuery(ctx *gin.Context) {
 		return
 	}
 
+	// 发送 清理调度日志 操作日志消息
+	go func() {
+		desc := fmt.Sprintf("清理了调度日志[清理策略: %s]", cleartype.ConvClearType(*param.ClearType).GetDesc())
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  tool.GetUserId(ctx),
+			Description: desc,
+			OperateTime: time.Now(),
+		})
+	}()
+
 	ctx.JSON(http.StatusOK, sdk.Ok())
 }
 
@@ -71,7 +84,7 @@ func (my *LogManage) StopJob(ctx *gin.Context) {
 		return
 	}
 
-	if err := my.hzmLogService.StopJob(param); err != nil {
+	if err := my.hzmLogService.StopJob(param, tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}

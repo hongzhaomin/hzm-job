@@ -77,3 +77,19 @@ func RandStr(length int) string {
 	}
 	return string(result)
 }
+
+// TimeForEach 从startDate开始遍历到endDate为止（包含endDate），增量为1天
+func TimeForEach(startDate, endDate time.Time, eachDo func(date time.Time)) {
+	// 从startDate开始
+	tmpDate := startDate
+
+	// startDate <= tmpDate <= endDate
+	for (tmpDate.After(startDate) || tmpDate.Equal(startDate)) && (tmpDate.Before(endDate) || tmpDate.Equal(endDate)) {
+
+		// 需要处理的函数
+		eachDo(tmpDate)
+
+		// 加1天
+		tmpDate = tmpDate.Add(time.Hour * 24)
+	}
+}

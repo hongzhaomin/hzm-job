@@ -303,16 +303,18 @@
                 },
                 // 数据渲染完的回调
                 done: function (res) {
-                    res.data.forEach(function (item, index) {
-                        if (item.status !== 1) { // status==1:表示任务正在执行中，非执行中的终止任务按钮禁用
-                            // 终止任务按钮置灰
-                            $('tr[data-index=' + index + '] .data-count-stop-job')
-                                .addClass('layui-btn-disabled')
-                                .removeClass('layui-btn-normal')
-                                .attr('disabled', true);
-                            form.render();
-                        }
-                    });
+                    if (res.data) {
+                        res.data.forEach(function (item, index) {
+                            if (item.status !== 1) { // status==1:表示任务正在执行中，非执行中的终止任务按钮禁用
+                                // 终止任务按钮置灰
+                                $('tr[data-index=' + index + '] .data-count-stop-job')
+                                    .addClass('layui-btn-disabled')
+                                    .removeClass('layui-btn-normal')
+                                    .attr('disabled', true);
+                                form.render();
+                            }
+                        });
+                    }
                 }
 
                 // line （行边框风格）

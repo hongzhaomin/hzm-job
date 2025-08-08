@@ -144,7 +144,20 @@
         // 定义初始化方法，给父页面调用，达到传递数据的目的
         window.initJobEditLayer = function (params) {
             $('input[name="id"]').val(params.id);
-            $('select[name="executorId"]').val(params.executorId);
+            // 初始化执行器下拉框
+            $.getJSON('/admin/executor/select-box', function (res) {
+                if (res.success) {
+                    let optionsHtml = '';
+                    if (res.data) {
+                        for (let item of res.data) {
+                            optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                        }
+                    }
+                    $('select[name="executorId"]').append(optionsHtml).val(params.executorId);
+                    // 重新渲染下拉框
+                    form.render('select');
+                }
+            });
             $('input[name="description"]').val(params.description);
             $('input[name="head"]').val(params.head);
             $('select[name="scheduleType"]').val(params.scheduleType);
@@ -153,7 +166,20 @@
                 $('input[name="scheduleValue"]').val(params.scheduleValue);
             } else if (parseInt(params.scheduleType) === 2) {
                 // simple cron
-                $('select[name="simpleScheduleValue"]').val(params.scheduleValue);
+                // 初始化极简表达式下拉框
+                $.getJSON('/admin/job/simple-cron/select-box', function (res) {
+                    if (res.success) {
+                        let optionsHtml = '';
+                        if (res.data) {
+                            for (let item of res.data) {
+                                optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                            }
+                        }
+                        $('select[name="simpleScheduleValue"]').append(optionsHtml).val(params.scheduleValue);
+                        // 重新渲染下拉框
+                        form.render('select');
+                    }
+                });
             }
             $('input[name="name"]').val(params.name);
             $('select[name="routerStrategy"]').val(params.routerStrategy);
@@ -161,36 +187,6 @@
             scheduleTypeSelectChanged(params.scheduleType);
             form.render('select');
         }
-
-        // 初始化执行器下拉框
-        $.getJSON('/admin/executor/select-box', function (res) {
-            if (res.success) {
-                let optionsHtml = '';
-                if (res.data) {
-                    for (let item of res.data) {
-                        optionsHtml += `<option value="${item.value}">${item.name}</option>`;
-                    }
-                }
-                $('select[name="executorId"]').append(optionsHtml);
-                // 重新渲染下拉框
-                form.render('select');
-            }
-        });
-
-        // 初始化极简表达式下拉框
-        $.getJSON('/admin/job/simple-cron/select-box', function (res) {
-            if (res.success) {
-                let optionsHtml = '';
-                if (res.data) {
-                    for (let item of res.data) {
-                        optionsHtml += `<option value="${item.value}">${item.name}</option>`;
-                    }
-                }
-                $('select[name="simpleScheduleValue"]').append(optionsHtml);
-                // 重新渲染下拉框
-                form.render('select');
-            }
-        });
 
         // 监听select下拉选择事件
         form.on('select(changeScheduleTypeFilter)', function (data) {

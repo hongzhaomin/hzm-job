@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po/sipcron"
 	"github.com/hongzhaomin/hzm-job/admin/service"
@@ -12,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // JobManage 任务管理
@@ -60,7 +64,7 @@ func (my *JobManage) JobSwitch(ctx *gin.Context) {
 		return
 	}
 
-	if err = my.hzmJobService.JobSwitch(int64(jobId)); err != nil {
+	if err = my.hzmJobService.JobSwitch(int64(jobId), tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
@@ -77,7 +81,7 @@ func (my *JobManage) Add(ctx *gin.Context) {
 		return
 	}
 
-	if err := my.hzmJobService.Add(param); err != nil {
+	if err := my.hzmJobService.Add(param, tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
@@ -99,7 +103,7 @@ func (my *JobManage) Edit(ctx *gin.Context) {
 		return
 	}
 
-	if err := my.hzmJobService.Edit(param); err != nil {
+	if err := my.hzmJobService.Edit(param, tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
@@ -121,6 +125,16 @@ func (my *JobManage) DeleteBatch(ctx *gin.Context) {
 		return
 	}
 
+	// 发送 删除任务 操作日志消息
+	go func() {
+		jsonByte, _ := json.Marshal(jobIds)
+		desc := fmt.Sprintf("删除了任务(任务id:%s)", string(jsonByte))
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  tool.GetUserId(ctx),
+			Description: desc,
+			OperateTime: time.Now(),
+		})
+	}()
 	ctx.JSON(http.StatusOK, sdk.Ok())
 }
 
@@ -133,7 +147,7 @@ func (my *JobManage) RunOnce(ctx *gin.Context) {
 		return
 	}
 
-	if err := my.hzmJobService.RunOnce(param); err != nil {
+	if err := my.hzmJobService.RunOnce(param, tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}

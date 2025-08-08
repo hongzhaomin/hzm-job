@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/admin/service"
@@ -13,6 +16,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // ExecutorManage 执行器管理
@@ -63,7 +67,7 @@ func (my *ExecutorManage) Add(ctx *gin.Context) {
 		}
 	}
 
-	if err := my.hzmExecutorService.Add(param); err != nil {
+	if err := my.hzmExecutorService.Add(param, tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
@@ -98,7 +102,7 @@ func (my *ExecutorManage) Edit(ctx *gin.Context) {
 		}
 	}
 
-	if err := my.hzmExecutorService.Edit(param); err != nil {
+	if err := my.hzmExecutorService.Edit(param, tool.GetUserId(ctx)); err != nil {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
@@ -138,6 +142,17 @@ func (my *ExecutorManage) DeleteBatch(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
+
+	// 发送 删除执行器 操作日志消息
+	go func() {
+		jsonByte, _ := json.Marshal(executorIds)
+		desc := fmt.Sprintf("删除了执行器(执行器id:%s)", string(jsonByte))
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  tool.GetUserId(ctx),
+			Description: desc,
+			OperateTime: time.Now(),
+		})
+	}()
 
 	ctx.JSON(http.StatusOK, sdk.Ok())
 }

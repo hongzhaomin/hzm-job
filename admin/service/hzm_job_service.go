@@ -11,6 +11,7 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"github.com/robfig/cron/v3"
+	"time"
 )
 
 type HzmJobService struct {
@@ -62,7 +63,7 @@ func (my *HzmJobService) PageJobs(loginUser *vo.User, param req.JobPage) (int64,
 	return count, voJobs
 }
 
-func (my *HzmJobService) JobSwitch(jobId int64) error {
+func (my *HzmJobService) JobSwitch(jobId, userId int64) error {
 	job, err := my.hzmJobDao.FindById(jobId)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())
@@ -105,10 +106,27 @@ func (my *HzmJobService) JobSwitch(jobId int64) error {
 			global.SingletonPool().Cron.Remove(cron.EntryID(*job.CronEntryId))
 		}
 	}
+
+	// 发送 开启/停止任务 操作日志消息
+	go func() {
+		var desc string
+		if po.JobStop.Is(job.Status) {
+			desc = fmt.Sprintf("启动了任务[%s]", *job.Name)
+		} else if po.JobRunning.Is(job.Status) {
+			desc = fmt.Sprintf("停止了任务[%s]", *job.Name)
+		}
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  userId,
+			Description: desc,
+			OperateTime: time.Now(),
+			NewValue:    job,
+		})
+	}()
+
 	return nil
 }
 
-func (my *HzmJobService) Add(param req.Job) error {
+func (my *HzmJobService) Add(param req.Job, userId int64) error {
 	sameNameJob, err := my.hzmJobDao.FindByExecutorIdAndName(param.ExecutorId, param.Name)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())
@@ -133,10 +151,21 @@ func (my *HzmJobService) Add(param req.Job) error {
 		global.SingletonPool().Log.Error(err.Error())
 		return consts.ServerError
 	}
+
+	// 发送 添加任务 操作日志消息
+	go func() {
+		desc := fmt.Sprintf("新增了任务[%s]", *newJob.Name)
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  userId,
+			Description: desc,
+			OperateTime: time.Now(),
+			NewValue:    newJob,
+		})
+	}()
 	return nil
 }
 
-func (my *HzmJobService) Edit(param req.Job) error {
+func (my *HzmJobService) Edit(param req.Job, userId int64) error {
 	job, err := my.hzmJobDao.FindById(*param.Id)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())
@@ -156,9 +185,33 @@ func (my *HzmJobService) Edit(param req.Job) error {
 	}
 
 	// 编辑任务
+	oldJob := *job
 	job.ExecutorId = param.ExecutorId
 	job.Name = param.Name
 	job.ScheduleType = param.ScheduleType
+	if *job.ScheduleValue != *param.ScheduleValue && po.JobRunning.Is(job.Status) {
+		// 如果修改了表达式并且任务状态为启动中，需要删除cron，并重新注册
+		if job.CronEntryId != nil {
+			// 删除注册任务
+			global.SingletonPool().Cron.Remove(cron.EntryID(*job.CronEntryId))
+			// 注册cron
+			var entryId cron.EntryID
+			entryId, err = global.SingletonPool().Cron.AddFunc(*job.ScheduleValue, func() {
+				global.SingletonPool().CronFuncRegister.WrapperRegistryJobFunc(job, nil)
+			})
+			if err != nil {
+				global.SingletonPool().Log.Error("任务注册失败", "jobId", *job.Id, "err", err)
+			} else {
+				// 将entryId更新到job中，方便后续删除注册的任务
+				if err = my.hzmJobDao.UpdateCronEntryId(*job.Id, int(entryId)); err != nil {
+					global.SingletonPool().Log.Error("更新任务注册id失败",
+						"jobId", *job.Id,
+						"cronEntryId", entryId,
+						"err", err)
+				}
+			}
+		}
+	}
 	job.ScheduleValue = param.ScheduleValue
 	job.Parameters = param.Parameters
 	job.Description = param.Description
@@ -168,6 +221,18 @@ func (my *HzmJobService) Edit(param req.Job) error {
 		global.SingletonPool().Log.Error(err.Error())
 		return consts.ServerError
 	}
+
+	// 发送 添加任务 操作日志消息
+	go func() {
+		desc := fmt.Sprintf("修改了任务[%s]", *job.Name)
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  userId,
+			Description: desc,
+			OperateTime: time.Now(),
+			OldValue:    &oldJob,
+			NewValue:    job,
+		})
+	}()
 	return nil
 }
 
@@ -184,7 +249,7 @@ func (my *HzmJobService) DeleteBatch(jobIds []int64) error {
 	return nil
 }
 
-func (my *HzmJobService) RunOnce(param req.JobRunOnce) error {
+func (my *HzmJobService) RunOnce(param req.JobRunOnce, userId int64) error {
 	job, err := my.hzmJobDao.FindById(*param.Id)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())
@@ -196,6 +261,17 @@ func (my *HzmJobService) RunOnce(param req.JobRunOnce) error {
 
 	job.Parameters = &param.Parameters
 	global.SingletonPool().CronFuncRegister.WrapperRegistryJobFunc(job, param.ExecutorNodeId)
+
+	// 发送 手动执行一次任务 操作日志消息
+	go func() {
+		desc := fmt.Sprintf("手动执行了一次任务[%s]", *job.Name)
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  userId,
+			Description: desc,
+			OperateTime: time.Now(),
+			NewValue:    job,
+		})
+	}()
 	return nil
 }
 

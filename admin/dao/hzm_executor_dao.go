@@ -124,3 +124,21 @@ func (my *HzmExecutorDao) LogicDeleteBatch(ids []int64) error {
 		Update("valid", false).
 		Error
 }
+
+func (my *HzmExecutorDao) CountStatistics() (int64, int64, error) {
+	db := global.SingletonPool().Mysql
+	var total int64
+	err := db.Model(po.HzmExecutor{}).
+		Where("valid = 1").
+		Count(&total).
+		Error
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var online int64
+	err = db.Raw("select count(distinct executor_id) from hzm_executor_node where valid = 1 and status = ?", po.NodeOnline).
+		Scan(&online).
+		Error
+	return total, total - online, err
+}

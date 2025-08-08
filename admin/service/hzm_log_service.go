@@ -2,13 +2,14 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/hongzhaomin/hzm-job/admin/dao"
 	"github.com/hongzhaomin/hzm-job/admin/internal"
 	"github.com/hongzhaomin/hzm-job/admin/internal/consts"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po"
-	cleartype "github.com/hongzhaomin/hzm-job/admin/po/cleartype"
+	"github.com/hongzhaomin/hzm-job/admin/po/cleartype"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"github.com/hongzhaomin/hzm-job/core/tools"
@@ -155,7 +156,7 @@ func (my *HzmLogService) DeleteByQuery(param req.LogDelParam) error {
 	return nil
 }
 
-func (my *HzmLogService) StopJob(param req.StopJobParam) error {
+func (my *HzmLogService) StopJob(param req.StopJobParam, userId int64) error {
 	jobLog, err := my.hzmJobLogDao.FindById(*param.Id)
 	if jobLog == nil {
 		if err != nil {
@@ -186,5 +187,20 @@ func (my *HzmLogService) StopJob(param req.StopJobParam) error {
 			"err", err)
 		return errors.New("终止任务失败")
 	}
+
+	// 发送 手动终止任务 操作日志消息
+	go func() {
+		job, _ := my.hzmJobDao.FindById(*jobLog.JobId)
+		if job == nil {
+			return
+		}
+		desc := fmt.Sprintf("手动终止了任务[%s], 调度日志id: %d", *job.Name, *jobLog.Id)
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  userId,
+			Description: desc,
+			OperateTime: time.Now(),
+			NewValue:    job,
+		})
+	}()
 	return nil
 }

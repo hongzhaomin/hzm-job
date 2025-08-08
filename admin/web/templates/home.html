@@ -16,188 +16,138 @@
     .panel-body {padding:15px}
     .panel-title {margin-top:0;margin-bottom:0;font-size:14px;color:inherit}
     .label {display:inline;padding:.2em .6em .3em;font-size:75%;font-weight:700;line-height:1;color:#fff;text-align:center;white-space:nowrap;vertical-align:baseline;border-radius:.25em;margin-top: .3em;}
-    .layui-red {color:red}
     .main_btn > p {height:40px;}
+    .icon {margin-right:10px;color:#1aa094;}
+    .icon-tip {color:#ff5722!important;}
+    .layuimini-qiuck-module a i {display:inline-block;width:100%;height:60px;line-height:60px;text-align:center;border-radius:2px;font-size:30px;background-color:#F8F8F8;color:#333;transition:all .3s;-webkit-transition:all .3s;}
+    .layuimini-qiuck-module a cite {position:relative;top:2px;display:block;color:#666;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:14px;}
+    .layuimini-notice:hover {background:#f6f6f6;}
+    .layuimini-notice {padding:7px 16px;clear:both;font-size:12px !important;cursor:pointer;position:relative;transition:background 0.2s ease-in-out;}
+    .layuimini-notice-title,.layuimini-notice-label {
+        padding-right: 70px !important;text-overflow:ellipsis!important;overflow:hidden!important;white-space:nowrap!important;}
+    .layuimini-notice-title {line-height:28px;font-size:14px;}
+    .layuimini-notice-extra {position:absolute;top:50%;margin-top:-8px;right:16px;display:inline-block;height:16px;color:#999;}
+
+    .scroll-container {
+        max-height: 500px;
+        border: 1px solid #e6e6e6;
+        border-radius: 2px;
+        padding: 10px;
+        overflow-y: auto;
+    }
+    .empty-data {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 28px;
+    }
 </style>
 <body>
 <div class="layuimini-container">
     <div class="layuimini-main layui-top-box">
         <div class="layui-row layui-col-space10">
-
-            <div class="layui-col-md3">
-                <div class="col-xs-6 col-md-3">
-                    <div class="panel layui-bg-cyan">
-                        <div class="panel-body">
-                            <div class="panel-title">
-                                <span class="label pull-right layui-bg-blue">实时</span>
-                                <h5>用户统计</h5>
-                            </div>
-                            <div class="panel-content">
-                                <h1 class="no-margins">1234</h1>
-                                <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>
-                                <small>当前分类总记录数</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="layui-col-md3">
-                <div class="col-xs-6 col-md-3">
-                    <div class="panel layui-bg-blue">
-                        <div class="panel-body">
-                            <div class="panel-title">
-                                <span class="label pull-right layui-bg-cyan">实时</span>
-                                <h5>商品统计</h5>
-                            </div>
-                            <div class="panel-content">
-                                <h1 class="no-margins">1234</h1>
-                                <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>
-                                <small>当前分类总记录数</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="layui-col-md3">
-                <div class="col-xs-6 col-md-3">
-                    <div class="panel layui-bg-green">
-                        <div class="panel-body">
-                            <div class="panel-title">
-                                <span class="label pull-right layui-bg-orange">实时</span>
-                                <h5>浏览统计</h5>
-                            </div>
-                            <div class="panel-content">
-                                <h1 class="no-margins">1234</h1>
-                                <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>
-                                <small>当前分类总记录数</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="layui-col-md3">
-                <div class="col-xs-6 col-md-3">
-                    <div class="panel layui-bg-orange">
-                        <div class="panel-body">
-                            <div class="panel-title">
-                                <span class="label pull-right layui-bg-green">实时</span>
-                                <h5>订单统计</h5>
-                            </div>
-                            <div class="panel-content">
-                                <h1 class="no-margins">1234</h1>
-                                <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>
-                                <small>当前分类总记录数</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="layui-box">
-        <div class="layui-row layui-col-space10">
             <div class="layui-col-md12">
-                <blockquote class="layui-elem-quote main_btn">
-                    <p>本模板基于layui2.5.4以及font-awesome-4.7.0进行实现。layui开发文档地址：<a class="layui-btn layui-btn-xs layui-btn-danger" target="_blank" href="http://www.layui.com/doc">layui文档</a></p>
-                    <p>技术交流QQ群（561838086）：<a target="_blank" href="https://jq.qq.com/?_wv=1027&k=5JRGVfe"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="layuimini" title="layuimini"></a>（加群请备注来源：如gitee、github、官网等）</p>
-                    <p>喜欢此后台模板的可以给我的GitHub和Gitee加个Star支持一下</p>
-                    <p>GitHub地址：
-                        <iframe src="https://ghbtns.com/github-btn.html?user=zhongshaofa&repo=layuimini&type=star&count=true" frameborder="0" scrolling="0" width="100px" height="20px"></iframe>
-                        <iframe src="https://ghbtns.com/github-btn.html?user=zhongshaofa&repo=layuimini&type=fork&count=true" frameborder="0" scrolling="0" width="100px" height="20px"></iframe>
-                    </p>
-                    <p>Gitee地址：<a href="https://gitee.com/zhongshaofa/layuimini" target="_blank"><img src="https://gitee.com/zhongshaofa/layuimini/badge/star.svg?theme=dark" alt="star"></a> <a href="https://gitee.com/zhongshaofa/layuimini" target="_blank"><img src="https://gitee.com/zhongshaofa/layuimini/badge/fork.svg?theme=dark" alt="fork"></a></p>
-                </blockquote>
-            </div>
-        </div>
-    </div>
+                <div class="layui-row layui-col-space10">
+                    <div class="layui-col-md3">
+                        <div class="col-xs-6 col-md-3">
+                            <div class="panel layui-bg-cyan">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-blue">实时</span>
+                                        <h5>任务总数</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 id="jobTotalNum" class="no-margins">0</h1>
+<!--                                        <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>-->
+                                        <small>当前任务总数量</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="layui-box">
-        <div class="layui-row layui-col-space10">
-            <div class="layui-col-md6">
-                <table class="layui-table">
-                    <colgroup>
-                        <col width="150">
-                        <col width="200">
-                        <col>
-                    </colgroup>
-                    <thead>
-                    <tr>
-                        <th>昵称</th>
-                        <th>加入时间</th>
-                        <th>签名</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>贤心</td>
-                        <td>2016-11-29</td>
-                        <td>人生就像是一场修行</td>
-                    </tr>
-                    <tr>
-                        <td>许闲心</td>
-                        <td>2016-11-28</td>
-                        <td>于千万人之中遇见你所遇见的人，于千万年之中，时间的无涯的荒野里…</td>
-                    </tr>
-                    <tr>
-                        <td>许闲心</td>
-                        <td>2016-11-28</td>
-                        <td>于千万人之中遇见你所遇见的人，于千万年之中，时间的无涯的荒野里…</td>
-                    </tr>
-                    <tr>
-                        <td>许闲心</td>
-                        <td>2016-11-28</td>
-                        <td>于千万人之中遇见你所遇见的人，于千万年之中，时间的无涯的荒野里…</td>
-                    </tr>
-                    </tbody>
-                </table>
+                    <div class="layui-col-md3">
+                        <div class="col-xs-6 col-md-3">
+                            <div class="panel layui-bg-blue">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-cyan">实时</span>
+                                        <h5>运行任务数</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 id="runningJobNum" class="no-margins">0</h1>
+<!--                                        <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>-->
+                                        <small>当前状态为运行中的任务数量</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-md3">
+                        <div class="col-xs-6 col-md-3">
+                            <div class="panel layui-bg-green">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-orange">实时</span>
+                                        <h5>执行器总数</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 id="executorTotalNum" class="no-margins">0</h1>
+<!--                                        <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>-->
+                                        <small>当前执行器总数量</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-col-md3">
+                        <div class="col-xs-6 col-md-3">
+                            <div class="panel layui-bg-red">
+                                <div class="panel-body">
+                                    <div class="panel-title">
+                                        <span class="label pull-right layui-bg-green">实时</span>
+                                        <h5>离线执行器数</h5>
+                                    </div>
+                                    <div class="panel-content">
+                                        <h1 id="executorOfflineNum" class="no-margins">0</h1>
+<!--                                        <div class="stat-percent font-bold text-gray"><i class="fa fa-commenting"></i> 1234</div>-->
+                                        <small>当前无在线节点的执行器数量</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="layui-col-md6">
-                <ul class="layui-timeline">
-                    <li class="layui-timeline-item">
-                        <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
-                        <div class="layui-timeline-content layui-text">
-                            <h3 class="layui-timeline-title">8月18日</h3>
-                            <p>
-                                layui 2.0 的一切准备工作似乎都已到位。发布之弦，一触即发。
-                                <br>不枉近百个日日夜夜与之为伴。因小而大，因弱而强。
-                                <br>无论它能走多远，抑或如何支撑？至少我曾倾注全心，无怨无悔 <i class="layui-icon"></i>
-                            </p>
+
+            <div class="layui-col-md12">
+                <div class="layui-row layui-col-space10">
+                    <div class="layui-col-md8">
+                        <div class="layui-card">
+                            <div class="layui-card-header"><i class="fa fa-line-chart icon"></i>近15天调度次数报表统计</div>
+                            <div class="layui-card-body">
+                                <div id="echarts-records" style="width: 100%;min-height:500px"></div>
+                            </div>
                         </div>
-                    </li>
-                    <li class="layui-timeline-item">
-                        <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
-                        <div class="layui-timeline-content layui-text">
-                            <h3 class="layui-timeline-title">8月16日</h3>
-                            <p>杜甫的思想核心是儒家的仁政思想，他有“<em>致君尧舜上，再使风俗淳</em>”的宏伟抱负。个人最爱的名篇有：</p>
-                            <ul>
-                                <li>《登高》</li>
-                                <li>《茅屋为秋风所破歌》</li>
-                            </ul>
+                    </div>
+
+                    <div class="layui-col-md4">
+
+                        <div class="layui-card">
+                            <div class="layui-card-header"><i class="fa fa-bullhorn icon icon-tip"></i>系统公告</div>
+                            <div class="layui-card-body layui-text scroll-container">
+
+                                <div class="layuimini-notice">
+                                    <div class="empty-data">暂无数据</div>
+                                </div>
+
+                            </div>
                         </div>
-                    </li>
-                    <li class="layui-timeline-item">
-                        <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
-                        <div class="layui-timeline-content layui-text">
-                            <h3 class="layui-timeline-title">8月15日</h3>
-                            <p>
-                                中国人民抗日战争胜利72周年
-                                <br>常常在想，尽管对这个国家有这样那样的抱怨，但我们的确生在了最好的时代
-                                <br>铭记、感恩
-                                <br>所有为中华民族浴血奋战的英雄将士
-                                <br>永垂不朽
-                            </p>
-                        </div>
-                    </li>
-                    <li class="layui-timeline-item">
-                        <i class="layui-icon layui-timeline-axis">&#xe63f;</i>
-                        <div class="layui-timeline-content layui-text">
-                            <div class="layui-timeline-title">过去</div>
-                        </div>
-                    </li>
-                </ul>
+
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -205,9 +155,190 @@
 <script src="../static/layui-mini/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
 <script src="../static/layui-mini/js/lay-config.js?v=2.0.0" charset="utf-8"></script>
 <script>
-    layui.use(['jquery', 'loginCheck'], function () {
+    layui.use(['jquery', 'loginCheck','echarts'], function () {
         layui.loginCheck;
-        let $ = layui.$;
+        let $ = layui.$,
+            echarts = layui.echarts;
+
+        // 定义渲染数据块方法
+        function renderDataBlock() {
+            $.getJSON('/admin/home/data-block', function (res) {
+                if (res.success) {
+                    $('#jobTotalNum').text(res.data.jobTotalNum);
+                    $('#runningJobNum').text(res.data.runningJobNum);
+                    $('#executorTotalNum').text(res.data.executorTotalNum);
+                    $('#executorOfflineNum').text(res.data.executorOfflineNum);
+                }
+            });
+        }
+
+        // 定义渲染调度统计方法
+        function renderEcharts() {
+            $.getJSON('/admin/home/schedule-trend', function (res) {
+                if (res.success) {
+                    const data = res.data;
+                    // x坐标
+                    let xDataArr = data.map(v => v.statisticsDate);
+                    // 调度总数
+                    let totalNumArr = data.map(v => v.totalNum);
+                    // 调度成功数
+                    let successNumArr = data.map(v => v.successNum);
+                    // 调度失败数
+                    let failNumArr = data.map(v => v.failNum);
+                    // 调度折线图初始化
+                    var echartsRecords = echarts.init(document.getElementById('echarts-records'), 'walden');
+                    var optionRecords = {
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data:['调度总数','调度成功','调度失败']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        toolbox: {
+                            feature: {
+                                saveAsImage: {}
+                            }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: xDataArr
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                name:'调度总数',
+                                type:'line',
+                                data:totalNumArr
+                            },
+                            {
+                                name:'调度成功',
+                                type:'line',
+                                data:successNumArr
+                            },
+                            {
+                                name:'调度失败',
+                                type:'line',
+                                data:failNumArr
+                            }
+                        ]
+                    };
+                    echartsRecords.setOption(optionRecords);
+
+                    // echarts 窗口缩放自适应
+                    window.onresize = function(){
+                        echartsRecords.resize();
+                    }
+                }
+            });
+        }
+
+        // 定义渲染系统公告-操作日志方法
+        function renderOperateLog() {
+            $.getJSON('/admin/home/operate-logs', function (res) {
+                if (res.success) {
+                    const opeContainer = $('.scroll-container');
+                    let operateHtmlItems = '';
+                    if (res.data) {
+                        for (let item of res.data) {
+                            let details = item.details;
+                            let noticeContentHtml = '';
+                            if (details) {
+                                let trListHtml = ''
+                                for (let detail of details) {
+                                    const list = detail.split(":")
+                                    if (list) {
+                                        let tdsHtml = ''
+                                        for (let l of list) {
+                                            tdsHtml += `<td>${l}</td>`
+                                        }
+                                        trListHtml += `<tr>${tdsHtml}</tr>`
+                                    }
+                                }
+
+                                noticeContentHtml = `<div class="layuimini-notice-content layui-hide">
+                                        <table class="layui-table">
+                                            <tbody>
+                                            ${trListHtml}
+                                            </tbody>
+                                        </table>
+                                </div>`;
+                            }
+                            operateHtmlItems += `<div class="layuimini-notice">
+                                    <div class="layuimini-notice-title">
+                                        <span class="layui-font-red" style="margin-right: 5px">${item.operator}</span>
+                                        ${item.description}
+                                    </div>
+                                    <div class="layuimini-notice-extra">${item.operateTime}</div>
+                                    ${noticeContentHtml}
+                                </div>`;
+                        }
+                    }
+                    if (operateHtmlItems) {
+                        if (existEmptyDataElement) {
+                            opeContainer.empty();
+                        }
+                        opeContainer.append(operateHtmlItems);
+                    }
+                }
+            });
+        }
+
+        function existEmptyDataElement() {
+            return $('.empty-data').length > 0
+        }
+
+        // 调用各个模块的渲染方法
+        renderDataBlock();
+        renderEcharts();
+        renderOperateLog();
+
+
+        /**
+         * 查看公告信息
+         **/
+        $('body').on('click', '.layuimini-notice', function () {
+            var title = $(this).children('.layuimini-notice-title').text(),
+                noticeTime = $(this).children('.layuimini-notice-extra').text(),
+                content = $(this).children('.layuimini-notice-content').html();
+            if (content.length === 0) {
+                return
+            }
+            var html = '<div style="padding:15px 20px; text-align:justify; line-height: 22px;border-bottom:1px solid #e2e2e2;background-color: #ffffff;color: #0a0000">\n' +
+                '<div style="text-align: center;margin-bottom: 20px;font-weight: bold;border-bottom:1px solid #718fb5;padding-bottom: 5px"><h4 class="text-danger">' + title + '</h4></div>\n' +
+                '<div style="font-size: 12px">' + content + '</div>\n' +
+                '</div>\n';
+            parent.layer.open({
+                title: '系统公告详情'+'<span style="margin-left: 10px;font-size: 12px;color: #ffffff;margin-top: 1px">'+noticeTime+'</span>',
+                type: 1,
+                shade: 0.2,
+                maxmin: true,
+                shadeClose: true,
+                id: 'layuimini-notice',
+                skin: 'layui-layer-molv',
+                area: '60%',
+                content: html,
+                btn: '我知道了',
+                yes: function (index, layero) {
+                    parent.layer.close(index);
+                },
+            });
+        });
+
+        // fixme 先简单设置每 3s 刷新一次，后面优化成 websocket
+        setInterval(function () {
+            renderDataBlock();
+            renderEcharts();
+            renderOperateLog();
+        }, 3000)
     });
 </script>
 </body>

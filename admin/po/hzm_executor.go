@@ -12,6 +12,17 @@ type HzmExecutor struct {
 // ExecutorRegistryType 注册方式枚举
 type ExecutorRegistryType byte
 
+func GetExeRegistryTypeNameByType(registryType *byte) string {
+	switch ExecutorRegistryType(*registryType) {
+	case AutoRegistry:
+		return "自动注册"
+	case ManualRegistry:
+		return "手动注册"
+	default:
+		return ""
+	}
+}
+
 func (my ExecutorRegistryType) Is(registryType *byte) bool {
 	return my == ExecutorRegistryType(*registryType)
 }

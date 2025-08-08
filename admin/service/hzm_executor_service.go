@@ -12,6 +12,7 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"github.com/hongzhaomin/hzm-job/core/tools"
 	"strings"
+	"time"
 )
 
 type HzmExecutorService struct {
@@ -71,7 +72,7 @@ func (my *HzmExecutorService) PageExecutors(loginUser *vo.User, param req.Execut
 	return count, voExecutors
 }
 
-func (my *HzmExecutorService) Add(param req.Executor) error {
+func (my *HzmExecutorService) Add(param req.Executor, userId int64) error {
 	// 校验是否存在 AppKey 相同的执行器
 	sameAppKeyExecutor, err := my.hzmExecutorDao.FindByAppKey(*param.AppKey)
 	if err != nil {
@@ -113,10 +114,25 @@ func (my *HzmExecutorService) Add(param req.Executor) error {
 			return consts.ServerError
 		}
 	}
+
+	// 发送 添加执行器 操作日志消息
+	go func() {
+		var addresses string
+		if po.ManualRegistry.Is(param.RegistryType) {
+			addresses = fmt.Sprintf(", 手动注册节点信息: %s", *param.Addresses)
+		}
+		desc := fmt.Sprintf("新增了执行器[%s]%s", *executor.Name, addresses)
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  userId,
+			Description: desc,
+			OperateTime: time.Now(),
+			NewValue:    executor,
+		})
+	}()
 	return nil
 }
 
-func (my *HzmExecutorService) Edit(param req.Executor) error {
+func (my *HzmExecutorService) Edit(param req.Executor, userId int64) error {
 	executor, err := my.hzmExecutorDao.FindById(*param.Id)
 	if err != nil {
 		global.SingletonPool().Log.Error(err.Error())
@@ -137,6 +153,7 @@ func (my *HzmExecutorService) Edit(param req.Executor) error {
 	}
 
 	// 更新执行器
+	oldExecutor := *executor
 	executor.AppKey = param.AppKey
 	executor.Name = param.Name
 	executor.RegistryType = param.RegistryType
@@ -182,6 +199,22 @@ func (my *HzmExecutorService) Edit(param req.Executor) error {
 			return consts.ServerError
 		}
 	}
+
+	// 发送 修改执行器 操作日志消息
+	go func() {
+		var addresses string
+		if po.ManualRegistry.Is(param.RegistryType) {
+			addresses = fmt.Sprintf(", 手动注册节点信息: %s", *param.Addresses)
+		}
+		desc := fmt.Sprintf("修改了执行器[%s]%s", *executor.Name, addresses)
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  userId,
+			Description: desc,
+			OperateTime: time.Now(),
+			OldValue:    &oldExecutor,
+			NewValue:    executor,
+		})
+	}()
 	return nil
 }
 

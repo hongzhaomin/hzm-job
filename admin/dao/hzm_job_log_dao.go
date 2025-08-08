@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/po"
+	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -56,6 +57,11 @@ func (my *HzmJobLogDao) FinishJobLogById(jobLog *po.HzmJobLog) error {
 	if jobLog == nil || jobLog.Id == nil || jobLog.HandleCode == nil {
 		return nil
 	}
+	queryLog, e := my.FindById(*jobLog.Id)
+	if e != nil {
+		return e
+	}
+
 	updates := map[string]any{
 		"status":      po.LogJobFinished,
 		"handle_code": jobLog.HandleCode,
@@ -64,10 +70,34 @@ func (my *HzmJobLogDao) FinishJobLogById(jobLog *po.HzmJobLog) error {
 	if jobLog.HandleMsg != nil {
 		updates["handle_msg"] = *jobLog.HandleMsg
 	}
-	return global.SingletonPool().Mysql.Model(jobLog).
+	err := global.SingletonPool().Mysql.Model(jobLog).
 		Where("valid = 1 and id = ?", jobLog.Id).
 		Updates(updates).
 		Error
+	if err == nil {
+		// 发消息，更新调度统计成功或失败数
+		go func() {
+			var total int64
+			var success int64
+			var fail int64
+			if po.LogToSchedule.Is(queryLog.Status) {
+				total = 1
+			}
+			if jobLog.HandleCode != nil && *jobLog.HandleCode == 200 {
+				success = 1
+			} else {
+				fail = 1
+			}
+			global.SingletonPool().MessageBus.SendMsg(&vo.ScheduleStaMsg{
+				StaDay:      queryLog.CreateTime.Format(time.DateOnly),
+				TotalIncr:   total,
+				SuccessIncr: success,
+				FailIncr:    fail,
+			})
+		}()
+	}
+
+	return err
 }
 
 func (my *HzmJobLogDao) UpdateLog4JobRunningById(jobLog *po.HzmJobLog) error {
@@ -82,10 +112,23 @@ func (my *HzmJobLogDao) UpdateLog4JobRunningById(jobLog *po.HzmJobLog) error {
 	if jobLog.Parameters != nil {
 		updates["parameters"] = jobLog.Parameters
 	}
-	return global.SingletonPool().Mysql.Model(&po.HzmJobLog{}).
+	err := global.SingletonPool().Mysql.Model(&po.HzmJobLog{}).
 		Where("valid = 1 and id = ? and status = ?", jobLog.Id, po.LogToSchedule).
 		Updates(updates).
 		Error
+	if err == nil {
+		// 发消息，更新调度统计总数
+		go func() {
+			global.SingletonPool().MessageBus.SendMsg(&vo.ScheduleStaMsg{
+				StaDay:      jobLog.CreateTime.Format(time.DateOnly),
+				TotalIncr:   1,
+				SuccessIncr: 0,
+				FailIncr:    0,
+			})
+		}()
+	}
+
+	return err
 }
 
 func (my *HzmJobLogDao) FindRunningLogIdsByAddress(address *string) ([]int64, error) {
@@ -212,4 +255,33 @@ func (my *HzmJobLogDao) FindById(id int64) (*po.HzmJobLog, error) {
 		return nil, nil
 	}
 	return &log, err
+}
+
+func (my *HzmJobLogDao) CountStatistics(day string) (int64, int64, int64, error) {
+	if day == "" {
+		return 0, 0, 0, nil
+	}
+	startTime := day + " 00:00:00"
+	endTime := day + " 23:59:59"
+
+	db := global.SingletonPool().Mysql
+	var total int64
+	err := db.Model(po.HzmJobLog{}).
+		Where("valid = 1 and status in(?) and create_time >= ? and create_time <= ?",
+			[]po.LogStatus{po.LogJobRunning, po.LogJobFinished}, startTime, endTime).
+		Count(&total).
+		Error
+
+	var success int64
+	err = db.Model(po.HzmJobLog{}).
+		Where("valid = 1 and handle_code = 200 and create_time >= ? and create_time <= ?", startTime, endTime).
+		Count(&success).
+		Error
+
+	var fail int64
+	err = db.Model(po.HzmJobLog{}).
+		Where("valid = 1 and handle_code != 200 and create_time >= ? and create_time <= ?", startTime, endTime).
+		Count(&fail).
+		Error
+	return total, success, fail, err
 }

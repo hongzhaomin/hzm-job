@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/service"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
@@ -10,6 +11,7 @@ import (
 	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"io"
 	"net/http"
+	"time"
 )
 
 // AuthController 鉴权控制器
@@ -32,6 +34,15 @@ func (my *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
+	// 发送登录消息
+	go func() {
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  *loginUser.Id,
+			Description: "登入系统",
+			OperateTime: time.Now(),
+		})
+	}()
+
 	ctx.JSON(http.StatusOK, sdk.Ok2[vo.LoginUser](*loginUser))
 }
 
@@ -48,5 +59,15 @@ func (my *AuthController) LoginOut(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, sdk.Fail(err.Error()))
 		return
 	}
+
+	// 发送退出登录消息
+	go func() {
+		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
+			OperatorId:  tool.GetUserId(ctx),
+			Description: "退出系统",
+			OperateTime: time.Now(),
+		})
+	}()
+
 	ctx.JSON(http.StatusOK, sdk.Ok2[bool](true))
 }

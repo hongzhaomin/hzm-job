@@ -12,7 +12,7 @@ type secretObj struct {
 	cacheTime int64  // 缓存时间（毫秒时间戳）
 }
 
-var _ iface.ExecutorSecretCacheIface = (*ExecutorSecretCacheImpl)(nil)
+var _ iface.ExecutorSecretCache = (*ExecutorSecretCacheImpl)(nil)
 
 func NewExecutorSecretCache() *ExecutorSecretCacheImpl {
 	return &ExecutorSecretCacheImpl{

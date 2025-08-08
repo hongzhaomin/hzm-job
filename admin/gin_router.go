@@ -46,6 +46,7 @@ type GinRouter struct {
 	executorManage controller.ExecutorManage
 	userManage     controller.UserManage
 	menuManage     controller.MenuManage
+	homeManage     controller.HomeManage
 	hzmUserDao     dao.HzmUserDao
 }
 
@@ -58,6 +59,11 @@ func (my *GinRouter) webGroup(webGroup *gin.RouterGroup) {
 	// 菜单初始化
 	webGroup.GET("/menu/init", my.menuManage.Init)
 	webGroup.GET("/menu/get-log-menu", my.menuManage.GetLogMenu)
+
+	// 首页统计
+	webGroup.GET("/home/data-block", my.homeManage.DataBlock)
+	webGroup.GET("/home/schedule-trend", my.homeManage.ScheduleTrend)
+	webGroup.GET("/home/operate-logs", my.homeManage.OperateLogs)
 
 	// 任务管理
 	webGroup.GET("/job/page", my.jobManage.PageJobs)

@@ -22,6 +22,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var (
@@ -35,6 +36,7 @@ func main() {
 	cronRegister := global.SingletonPool().CronFuncRegister
 	cronRegister.RegistryHeatBeatFunc()
 	cronRegister.RegistryJobs()
+	registryAdminJob()
 
 	// 启动 cron 定时任务
 	c := global.SingletonPool().Cron
@@ -45,6 +47,10 @@ func main() {
 	openApi := openapi.NewJobServerOpenApi(&api.JobServerApiImpl{})
 	router := NewGinRouter(openApi)
 	router.Start()
+
+	// 开启消息总线监听
+	msgBus := global.SingletonPool().MessageBus
+	go msgBus.ListenEnable()
 
 	quit := make(chan os.Signal, 1)
 	// kill (no params) by default sends syscall.SIGTERM
@@ -60,6 +66,9 @@ func main() {
 	cronStopSign := global.SingletonPool().Cron.Stop()
 	<-cronStopSign.Done()
 	log.Info("hzm-job =========> Cron stoped")
+
+	msgBus.Stop()
+	log.Info("hzm-job =========> Message Bus stoped")
 
 	log.Info("hzm-job =========> Server exiting")
 }
@@ -113,6 +122,8 @@ func init() {
 	}
 	// 创建缓存对象
 	secretCache := cache.NewExecutorSecretCache()
+	// 创建消息总线对象
+	messageBus := service.NewMessageBus()
 
 	// 存储全局对象池
 	global.Store(&global.Obj{
@@ -124,6 +135,7 @@ func init() {
 		CronFuncRegister: cronRegister,
 		NodeSelectorMap:  nodeSelectorMap,
 		ExeSecretCache:   secretCache,
+		MessageBus:       messageBus,
 	})
 }
 
@@ -141,5 +153,17 @@ func configWatcher(params []ezconfig.WatcherParam, _ map[ezconfig.ConfigurationB
 		default:
 			// nothing to do
 		}
+	}
+}
+
+func registryAdminJob() {
+	c := global.SingletonPool().Cron
+
+	// 同步调度统计任务，每小时执行一次
+	if _, err := c.AddFunc("@hourly", func() {
+		homeService := &service.HzmHomeService{}
+		homeService.SyncScheduleStatisticsJob(time.Now())
+	}); err != nil {
+		global.SingletonPool().Log.Error("同步调度统计任务注册失败", "err", err)
 	}
 }

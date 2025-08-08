@@ -18,6 +18,17 @@ type HzmJob struct {
 // JobScheduleType 任务调度类型枚举
 type JobScheduleType byte
 
+func GetJobScheduleNameByType(scheduleType *byte) string {
+	switch JobScheduleType(*scheduleType) {
+	case JobCron:
+		return "cron表达式"
+	case JobSipCron:
+		return "极简表达式"
+	default:
+		return ""
+	}
+}
+
 const (
 	JobCron    JobScheduleType = iota + 1 // cron表达式
 	JobSipCron                            // 极简表达式
@@ -36,6 +47,17 @@ func (my JobStatus) ToPtr() *JobStatus {
 	return p
 }
 
+func GetJobStatusNameByType(status *byte) string {
+	switch JobStatus(*status) {
+	case JobStop:
+		return "Stop"
+	case JobRunning:
+		return "Running"
+	default:
+		return ""
+	}
+}
+
 const (
 	JobStop    JobStatus = iota // 未启动
 	JobRunning                  // 已启动
@@ -43,6 +65,19 @@ const (
 
 // JobRouterStrategy 任务路由策略枚举
 type JobRouterStrategy byte
+
+func GetJobRouterStrategyNameByType(tpe *byte) string {
+	switch JobRouterStrategy(*tpe) {
+	case JobPoll:
+		return "轮询"
+	case JobRandom:
+		return "随机"
+	case JobErrNext:
+		return "故障转移"
+	default:
+		return ""
+	}
+}
 
 const (
 	JobPoll    JobRouterStrategy = iota // 轮询

@@ -28,6 +28,21 @@ func (my *JobCancelCtx) CancelAndRemove(logId *int64) {
 	}
 }
 
+func (my *JobCancelCtx) CancelAndRemoveAll() {
+	var logIds []int64
+	my.logId2CancelFuncMap.Range(func(logId, v any) bool {
+		cancelFunc := v.(context.CancelFunc)
+		if cancelFunc != nil {
+			cancelFunc()
+		}
+		logIds = append(logIds, logId.(int64))
+		return true
+	})
+	for _, logId := range logIds {
+		my.logId2CancelFuncMap.Delete(logId)
+	}
+}
+
 func (my *JobCancelCtx) getAndRemove(logId *int64) context.CancelFunc {
 	if logId == nil {
 		return nil
