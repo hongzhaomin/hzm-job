@@ -113,7 +113,7 @@ func (my *HzmUserDao) FindByIds(ids []int64) ([]*po.HzmUser, error) {
 	var users []*po.HzmUser
 	err := global.SingletonPool().Mysql.
 		Where("valid = 1 and id in(?)", ids).
-		First(&users).
+		Find(&users).
 		Error
 	if err != nil {
 		return nil, err

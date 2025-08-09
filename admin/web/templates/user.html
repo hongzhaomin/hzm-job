@@ -163,9 +163,9 @@
         form.on('submit(data-search-btn)', function (data) {
             // 执行搜索重载
             table.reload('userTableId', {
-                // page: {
-                //     curr: 1
-                // },
+                page: {
+                    curr: 1
+                },
                 where: data.field
             }, 'data');
 

@@ -164,28 +164,36 @@
             if (parseInt(params.scheduleType) === 1) {
                 // cron
                 $('input[name="scheduleValue"]').val(params.scheduleValue);
+                renderSimpleCronSelect();
             } else if (parseInt(params.scheduleType) === 2) {
                 // simple cron
-                // 初始化极简表达式下拉框
-                $.getJSON('/admin/job/simple-cron/select-box', function (res) {
-                    if (res.success) {
-                        let optionsHtml = '';
-                        if (res.data) {
-                            for (let item of res.data) {
-                                optionsHtml += `<option value="${item.value}">${item.name}</option>`;
-                            }
-                        }
-                        $('select[name="simpleScheduleValue"]').append(optionsHtml).val(params.scheduleValue);
-                        // 重新渲染下拉框
-                        form.render('select');
-                    }
-                });
+                renderSimpleCronSelect(params.scheduleValue);
             }
             $('input[name="name"]').val(params.name);
             $('select[name="routerStrategy"]').val(params.routerStrategy);
             $('textarea[name="parameters"]').val(params.parameters);
             scheduleTypeSelectChanged(params.scheduleType);
             form.render('select');
+        }
+
+        // 初始化极简表达式下拉框
+        function renderSimpleCronSelect(scheduleValue) {
+            $.getJSON('/admin/job/simple-cron/select-box', function (res) {
+                if (res.success) {
+                    let optionsHtml = '';
+                    if (res.data) {
+                        for (let item of res.data) {
+                            optionsHtml += `<option value="${item.value}">${item.name}</option>`;
+                        }
+                    }
+                    const scheduleValueSelect = $('select[name="simpleScheduleValue"]').append(optionsHtml);
+                    if (scheduleValue) {
+                        scheduleValueSelect.val(scheduleValue);
+                    }
+                    // 重新渲染下拉框
+                    form.render('select');
+                }
+            });
         }
 
         // 监听select下拉选择事件

@@ -333,12 +333,12 @@
             });
         });
 
-        // fixme 先简单设置每 3s 刷新一次，后面优化成 websocket
+        // fixme 先简单设置每 8s 刷新一次，后面优化成 websocket
         setInterval(function () {
             renderDataBlock();
             renderEcharts();
             renderOperateLog();
-        }, 3000)
+        }, 8000)
     });
 </script>
 </body>

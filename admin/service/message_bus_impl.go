@@ -62,7 +62,7 @@ func (my *MessageBusImpl) ListenEnable() {
 func (my *MessageBusImpl) Stop() {
 	if my.cancelMsgBus != nil {
 		my.cancelMsgBus()
-		close(my.scheduleStaMsgChan)
-		close(my.opeLogMsgChan)
 	}
+	close(my.scheduleStaMsgChan)
+	close(my.opeLogMsgChan)
 }

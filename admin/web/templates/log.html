@@ -80,7 +80,8 @@
         <!-- 工具栏 -->
         <script type="text/html" id="toolbarlog">
             <div class="layui-btn-container">
-                <button class="layui-btn layui-btn-danger layui-btn-sm data-del-btn" lay-event="clear">清理</button>
+                <button class="layui-btn layui-btn-danger layui-btn-sm data-del-btn" lay-event="clear">
+                    <i class="layui-icon layui-icon-delete"></i> 清理
                 </button>
             </div>
         </script>
@@ -350,9 +351,9 @@
 
             // 执行搜索重载
             table.reload('logTableId', {
-                // page: {
-                //     curr: 1
-                // },
+                page: {
+                    curr: 1
+                },
                 where: query
             }, 'data');
 
