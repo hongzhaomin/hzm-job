@@ -5,6 +5,7 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/po"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
+	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 )
 
@@ -31,11 +32,35 @@ func (my *HzmJobDao) LogicDeleteBatchByExecutorIds(executorIds []int64) error {
 	if len(executorIds) <= 0 {
 		return nil
 	}
-	return global.SingletonPool().Mysql.
+	err := global.SingletonPool().Mysql.
 		Model(&po.HzmJob{}).
 		Where("valid = 1 and executor_id in (?)", executorIds).
 		Update("valid", false).
 		Error
+	if err != nil {
+		return err
+	}
+
+	var jobs []*po.HzmJob
+	err = global.SingletonPool().Mysql.
+		Select("status", "cron_entry_id").
+		Where("valid = 0 and executor_id in(?)", executorIds).
+		Find(&jobs).
+		Error
+	if err != nil {
+		return err
+	}
+	if len(jobs) <= 0 {
+		return nil
+	}
+
+	for _, job := range jobs {
+		// 删除注册任务
+		if job.CronEntryId != nil && po.JobRunning.Is(job.Status) {
+			global.SingletonPool().Cron.Remove(cron.EntryID(*job.CronEntryId))
+		}
+	}
+	return nil
 }
 
 func (my *HzmJobDao) Page(param req.JobPage) (int64, []*po.HzmJob, error) {
@@ -104,11 +129,36 @@ func (my *HzmJobDao) DeleteBatch(ids []int64) error {
 	if len(ids) <= 0 {
 		return nil
 	}
-	return global.SingletonPool().Mysql.
+
+	var jobs []*po.HzmJob
+	err := global.SingletonPool().Mysql.
+		Select("status", "cron_entry_id").
+		Where("valid = 1 and id in(?)", ids).
+		Find(&jobs).
+		Error
+	if err != nil {
+		return err
+	}
+	if len(jobs) <= 0 {
+		return nil
+	}
+
+	err = global.SingletonPool().Mysql.
 		Unscoped().
 		Where("valid = 1 and id in (?)", ids).
 		Delete(&po.HzmJob{}).
 		Error
+	if err != nil {
+		return err
+	}
+
+	for _, job := range jobs {
+		// 删除注册任务
+		if job.CronEntryId != nil && po.JobRunning.Is(job.Status) {
+			global.SingletonPool().Cron.Remove(cron.EntryID(*job.CronEntryId))
+		}
+	}
+	return nil
 }
 
 func (my *HzmJobDao) FindByExecutorIdAndName(executorId *int64, name *string) (*po.HzmJob, error) {

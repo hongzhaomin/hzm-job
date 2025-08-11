@@ -189,34 +189,35 @@ func (my *HzmJobService) Edit(param req.Job, userId int64) error {
 	job.ExecutorId = param.ExecutorId
 	job.Name = param.Name
 	job.ScheduleType = param.ScheduleType
-	if *job.ScheduleValue != *param.ScheduleValue && po.JobRunning.Is(job.Status) {
-		// 如果修改了表达式并且任务状态为启动中，需要删除cron，并重新注册
-		if job.CronEntryId != nil {
-			// 删除注册任务
-			global.SingletonPool().Cron.Remove(cron.EntryID(*job.CronEntryId))
-			// 注册cron
-			var entryId cron.EntryID
-			entryId, err = global.SingletonPool().Cron.AddFunc(*job.ScheduleValue, func() {
-				global.SingletonPool().CronFuncRegister.WrapperRegistryJobFunc(job, nil)
-			})
-			if err != nil {
-				global.SingletonPool().Log.Error("任务注册失败", "jobId", *job.Id, "err", err)
-			} else {
-				// 将entryId更新到job中，方便后续删除注册的任务
-				if err = my.hzmJobDao.UpdateCronEntryId(*job.Id, int(entryId)); err != nil {
-					global.SingletonPool().Log.Error("更新任务注册id失败",
-						"jobId", *job.Id,
-						"cronEntryId", entryId,
-						"err", err)
-				}
-			}
-		}
-	}
 	job.ScheduleValue = param.ScheduleValue
 	job.Parameters = param.Parameters
 	job.Description = param.Description
 	job.Head = param.Head
 	job.RouterStrategy = param.RouterStrategy
+	if po.JobRunning.Is(job.Status) {
+		if *job.ExecutorId != *oldJob.ExecutorId ||
+			*job.Name != *oldJob.Name ||
+			*job.ScheduleValue != *oldJob.ScheduleValue ||
+			*job.Parameters != *oldJob.Parameters ||
+			*job.RouterStrategy != *oldJob.RouterStrategy {
+			// 如果修改了以上属性并且任务状态为启动中，需要删除cron，并重新注册
+			if job.CronEntryId != nil {
+				// 删除注册任务
+				global.SingletonPool().Cron.Remove(cron.EntryID(*oldJob.CronEntryId))
+				// 注册cron
+				var entryId cron.EntryID
+				entryId, err = global.SingletonPool().Cron.AddFunc(*job.ScheduleValue, func() {
+					global.SingletonPool().CronFuncRegister.WrapperRegistryJobFunc(job, nil)
+				})
+				if err != nil {
+					global.SingletonPool().Log.Error("任务注册失败", "jobId", *job.Id, "err", err)
+				} else {
+					// 将entryId更新到job中，方便后续删除注册的任务
+					job.CronEntryId = (*int)(&entryId)
+				}
+			}
+		}
+	}
 	if err = my.hzmJobDao.Update(job); err != nil {
 		global.SingletonPool().Log.Error(err.Error())
 		return consts.ServerError

@@ -119,8 +119,13 @@ func (my *HzmJobLogDao) UpdateLog4JobRunningById(jobLog *po.HzmJobLog) error {
 	if err == nil {
 		// 发消息，更新调度统计总数
 		go func() {
+			queryLog, e := my.FindById(*jobLog.Id)
+			if e != nil {
+				global.SingletonPool().Log.Error("Find job log by id error", e)
+				return
+			}
 			global.SingletonPool().MessageBus.SendMsg(&vo.ScheduleStaMsg{
-				StaDay:      jobLog.CreateTime.Format(time.DateOnly),
+				StaDay:      queryLog.CreateTime.Format(time.DateOnly),
 				TotalIncr:   1,
 				SuccessIncr: 0,
 				FailIncr:    0,

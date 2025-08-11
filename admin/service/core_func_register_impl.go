@@ -232,8 +232,7 @@ func (my *CronFuncRegister) WrapperRegistryJobFunc(job *po.HzmJob, executorNodeI
 		// 更新log状态为执行中
 		runningJobLog := &po.HzmJobLog{
 			BasePo: po.BasePo{
-				Id:         jobLog.Id,
-				CreateTime: jobLog.CreateTime,
+				Id: jobLog.Id,
 			},
 			ExecutorNodeAddress: node.Address,
 			Parameters:          job.Parameters,
