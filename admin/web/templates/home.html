@@ -41,6 +41,28 @@
         align-items: center;
         min-height: 28px;
     }
+    .truncate-text {
+        display: inline-block;
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .truncate-text:hover {
+        max-width: 100%;
+        white-space: normal;
+        overflow: visible;
+        position: relative;
+        z-index: 100;
+        background: #fedbdb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        padding: 8px 12px;
+        border-radius: 6px;
+        word-break: break-word;
+    }
 </style>
 <body>
 <div class="layuimini-container">
@@ -273,7 +295,7 @@
                                 </div>`;
                             }
                             operateHtmlItems += `<div class="layuimini-notice">
-                                    <div class="layuimini-notice-title">
+                                    <div class="layuimini-notice-title truncate-text">
                                         <span class="layui-font-red" style="margin-right: 5px">${item.operator}</span>
                                         ${item.description}
                                     </div>
