@@ -347,4 +347,5 @@ hzm-job采用Apache 2.0许可证，详见[LICENSE](LICENSE)文件。
 
 ## 13. 赞赏作者
 
-![Image text](admin/web/static/images/laud-author.png)
+[//]: # (![Image text]&#40;admin/web/static/images/laud-author.png&#41;)
+<img src="admin/web/static/images/laud-author.png" width="200" alt="赞赏码">
