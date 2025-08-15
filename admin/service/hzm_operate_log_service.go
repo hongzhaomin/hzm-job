@@ -7,7 +7,9 @@ import (
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/internal/tool"
 	"github.com/hongzhaomin/hzm-job/admin/po"
+	"github.com/hongzhaomin/hzm-job/admin/po/cleartype"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
+	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"github.com/hongzhaomin/hzm-job/core/tools"
 	"time"
 )
@@ -15,6 +17,8 @@ import (
 type HzmOperateLogService struct {
 	hzmOperateLogDao dao.HzmOperateLogDao
 	hzmUserDao       dao.HzmUserDao
+	hzmExecutorDao   dao.HzmExecutorDao
+	hzmJobDao        dao.HzmJobDao
 }
 
 // ReceiveMsg 消费调度统计消息
@@ -69,6 +73,28 @@ func (my *HzmOperateLogService) ReceiveMsg(msg *vo.OperateLogMsg) {
 				details = append(details, fmt.Sprintf("AppKey:%s", *nv.AppKey))
 				details = append(details, fmt.Sprintf("注册方式:%s", po.GetExeRegistryTypeNameByType(nv.RegistryType)))
 			}
+		case *req.LogDelParam:
+			var executorId string
+			executorName := "全部"
+			if nv.ExecutorId != nil {
+				executorId = fmt.Sprintf("%d", *nv.ExecutorId)
+				if executor, err := my.hzmExecutorDao.FindById(*nv.ExecutorId); err == nil {
+					executorName = *executor.Name
+				}
+			}
+			var jobId string
+			jobName := "全部"
+			if nv.JobId != nil {
+				jobId = fmt.Sprintf("%d", *nv.JobId)
+				if job, err := my.hzmJobDao.FindById(*nv.JobId); err == nil {
+					jobName = *job.Name
+				}
+			}
+			details = append(details, fmt.Sprintf("执行器id:%s", executorId))
+			details = append(details, fmt.Sprintf("执行器名称:%s", executorName))
+			details = append(details, fmt.Sprintf("任务id:%s", jobId))
+			details = append(details, fmt.Sprintf("任务名称:%s", jobName))
+			details = append(details, fmt.Sprintf("清理策略:%s", cleartype.ConvClearType(*nv.ClearType).GetDesc()))
 		default:
 			global.SingletonPool().Log.Error("ReceiveMsg ==> 不支持的操作日志对象", "msg", *msg)
 		}

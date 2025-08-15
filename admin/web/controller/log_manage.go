@@ -13,6 +13,7 @@ import (
 	"github.com/hongzhaomin/hzm-job/core/sdk"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -64,11 +65,13 @@ func (my *LogManage) DeleteByQuery(ctx *gin.Context) {
 
 	// 发送 清理调度日志 操作日志消息
 	go func() {
-		desc := fmt.Sprintf("清理了调度日志[清理策略: %s]", cleartype.ConvClearType(*param.ClearType).GetDesc())
+		desc := fmt.Sprintf("清理了%s调度日志",
+			strings.ReplaceAll(cleartype.ConvClearType(*param.ClearType).GetDesc(), "清理", ""))
 		global.SingletonPool().MessageBus.SendMsg(&vo.OperateLogMsg{
 			OperatorId:  tool.GetUserId(ctx),
 			Description: desc,
 			OperateTime: time.Now(),
+			NewValue:    &param,
 		})
 	}()
 
