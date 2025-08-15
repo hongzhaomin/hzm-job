@@ -343,7 +343,7 @@ hzm:
 
 ## 12. 许可证
 
-hzm-job采用Apache 2.0许可证，详见[LICENSE](LICENSE)文件。
+hzm-job采用MIT许可证，详见[LICENSE](LICENSE)文件。
 
 ## 13. 赞赏作者
 
