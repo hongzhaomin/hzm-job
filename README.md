@@ -88,10 +88,6 @@ hzm:
     # 构建管理端
     cd admin
     go build -o hzm-job-admin
-    
-    # 构建执行器示例
-    cd example-executor
-    go build -o hzm-job-executor
 ```
 
 ### 4.4 启动管理端
@@ -157,7 +153,7 @@ hzm:
    基于函数的作业是定义任务最简单的方式。它们非常适合快速、直接的操作，特别是当您不需要复杂的参数处理或希望避免创建单独的结构体时。JobFunc 本质上是一个遵循特定签名的函数：`func(ctx context.Context, param *string) error`。
 
 ```go
-   package main
+package main
 
 import (
    "context"
