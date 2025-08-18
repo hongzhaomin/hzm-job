@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/po"
+	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"gorm.io/gorm"
 )
 
@@ -81,21 +82,37 @@ func (my *HzmExecutorNodeDao) DeleteByExecutorId(executorId *int64) error {
 	if executorId == nil {
 		return nil
 	}
-	return global.SingletonPool().Mysql.Unscoped().
+	err := global.SingletonPool().Mysql.Unscoped().
 		Where("valid = 1 and executor_id = ?", executorId).
 		Delete(&po.HzmExecutorNode{}).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmExecutorNodeDao) LogicDeleteBatchByExecutorIds(executorIds []int64) error {
 	if len(executorIds) <= 0 {
 		return nil
 	}
-	return global.SingletonPool().Mysql.
+	err := global.SingletonPool().Mysql.
 		Model(&po.HzmExecutorNode{}).
 		Where("valid = 1 and executor_id in (?)", executorIds).
 		Update("valid", false).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmExecutorNodeDao) CountOnlineByExecutorIds(executorIds []int64) (map[int64]int, error) {

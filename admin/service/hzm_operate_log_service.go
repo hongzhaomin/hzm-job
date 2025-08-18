@@ -104,6 +104,8 @@ func (my *HzmOperateLogService) ReceiveMsg(msg *vo.OperateLogMsg) {
 	if err := my.hzmOperateLogDao.Insert(opeLog); err != nil {
 		global.SingletonPool().Log.Info("ReceiveMsg ==> 操作日志添加失败", "msg", *msg, "err", err)
 	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseOperateLogs)
 }
 
 func (my *HzmOperateLogService) convertDetail(details []string) *string {

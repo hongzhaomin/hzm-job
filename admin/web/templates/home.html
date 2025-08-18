@@ -355,12 +355,38 @@
             });
         });
 
-        // fixme 先简单设置每 8s 刷新一次，后面优化成 websocket
-        setInterval(function () {
-            renderDataBlock();
-            renderEcharts();
-            renderOperateLog();
-        }, 8000)
+        // 统计事件推送
+        function sseEvent() {
+            // const url = new URL('http://localhost:8080/chat', window.location.origin);
+            // url.searchParams.append('content', message);
+
+            const eventSource = new EventSource("/admin/home/sseEvent");
+
+            eventSource.onmessage = (event) => {
+                if (event.data === 'dataBlock') {
+                    renderDataBlock();
+                } else if (event.data === 'scheduleTrend') {
+                    renderEcharts();
+                } else if (event.data === 'operateLogs') {
+                    renderOperateLog();
+                } else if (event.data === '[DONE]') {
+                    eventSource.close();
+                }
+            };
+
+            eventSource.onerror = (error) => {
+                console.error('SSE 连接出错:', error);
+                eventSource.close();
+            };
+        }
+        // 初始化sse
+        sseEvent()
+
+        // setInterval(function () {
+        //     renderDataBlock();
+        //     renderEcharts();
+        //     renderOperateLog();
+        // }, 8000)
     });
 </script>
 </body>

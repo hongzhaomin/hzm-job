@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/po"
+	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"gorm.io/gorm"
 )
@@ -65,10 +66,18 @@ func (my *HzmExecutorDao) FindByAppKey(appKey string) (*po.HzmExecutor, error) {
 }
 
 func (my *HzmExecutorDao) Save(executor *po.HzmExecutor) error {
-	return global.SingletonPool().Mysql.
+	err := global.SingletonPool().Mysql.
 		Select("Name", "AppKey", "AppSecret", "RegistryType").
 		Create(executor).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmExecutorDao) Page(param req.ExecutorPage) (int64, []*po.HzmExecutor, error) {
@@ -97,9 +106,17 @@ func (my *HzmExecutorDao) Page(param req.ExecutorPage) (int64, []*po.HzmExecutor
 }
 
 func (my *HzmExecutorDao) Update(executor *po.HzmExecutor) error {
-	return global.SingletonPool().Mysql.
+	err := global.SingletonPool().Mysql.
 		Save(executor).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmExecutorDao) LogicDeleteBatch(ids []int64) error {
@@ -118,11 +135,19 @@ func (my *HzmExecutorDao) LogicDeleteBatch(ids []int64) error {
 		global.SingletonPool().ExeSecretCache.DeleteByAppKey(*executor.AppKey)
 	}
 
-	return global.SingletonPool().Mysql.
+	err = global.SingletonPool().Mysql.
 		Model(&po.HzmExecutor{}).
 		Where("valid = 1 and id in (?)", ids).
 		Update("valid", false).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmExecutorDao) CountStatistics() (int64, int64, error) {

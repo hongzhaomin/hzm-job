@@ -30,3 +30,12 @@ type OperateLogMsg struct {
 	OldValue    any       `json:"oldValue"`    // 旧数据
 	NewValue    any       `json:"newValue"`    // 新数据
 }
+
+type SseMsg string
+
+var (
+	SseDataBlock     SseMsg = "dataBlock"
+	SseScheduleTrend SseMsg = "scheduleTrend"
+	SseOperateLogs   SseMsg = "operateLogs"
+	SseDone          SseMsg = "[DONE]"
+)

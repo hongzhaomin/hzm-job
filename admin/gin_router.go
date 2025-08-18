@@ -31,6 +31,7 @@ func NewGinRouter(openApi *openapi.JobServerOpenApi) *GinRouter {
 		noAuthPathList: []string{
 			//"/admin/executor/**",
 			"/admin/login",
+			"/admin/home/sseEvent",
 		},
 	}
 }
@@ -64,6 +65,7 @@ func (my *GinRouter) webGroup(webGroup *gin.RouterGroup) {
 	webGroup.GET("/home/data-block", my.homeManage.DataBlock)
 	webGroup.GET("/home/schedule-trend", my.homeManage.ScheduleTrend)
 	webGroup.GET("/home/operate-logs", my.homeManage.OperateLogs)
+	webGroup.GET("/home/sseEvent", my.homeManage.SseEvent)
 
 	// 任务管理
 	webGroup.GET("/job/page", my.jobManage.PageJobs)

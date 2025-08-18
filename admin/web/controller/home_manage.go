@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/service"
 	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/core/sdk"
@@ -33,4 +34,37 @@ func (my *HomeManage) ScheduleTrend(ctx *gin.Context) {
 func (my *HomeManage) OperateLogs(ctx *gin.Context) {
 	opeLogs := my.hzmOperateLogService.OperateLogs()
 	ctx.JSON(http.StatusOK, sdk.Ok2[[]*vo.OperateLog](opeLogs))
+}
+
+// SseEvent 统计事件推送
+// @Get home/sseEvent
+func (my *HomeManage) SseEvent(ctx *gin.Context) {
+	// 设置响应头为SSE
+	ctx.Header("Content-Type", "text/event-stream")
+	ctx.Header("Cache-Control", "no-cache")
+	ctx.Header("Connection", "keep-alive")
+	ctx.Header("Access-Control-Allow-Origin", "*") // 如果需要跨域支持
+
+	// 发送事件流，这里使用flusher来确保数据即时发送到客户端
+	flusher := ctx.Writer.Flush
+
+	finish := func() {
+		ctx.SSEvent("message", vo.SseDone)
+		flusher()
+	}
+
+	for {
+		select {
+		case sseMsg, ok := <-global.SingletonPool().MessageBus.GetSseMsgChan():
+			if !ok {
+				finish()
+				return
+			}
+			ctx.SSEvent("message", sseMsg)
+			flusher()
+		case <-ctx.Done():
+			finish()
+			return
+		}
+	}
 }

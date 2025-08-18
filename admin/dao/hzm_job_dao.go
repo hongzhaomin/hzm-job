@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/hongzhaomin/hzm-job/admin/internal/global"
 	"github.com/hongzhaomin/hzm-job/admin/po"
+	"github.com/hongzhaomin/hzm-job/admin/vo"
 	"github.com/hongzhaomin/hzm-job/admin/vo/req"
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
@@ -12,11 +13,19 @@ import (
 type HzmJobDao struct{}
 
 func (my *HzmJobDao) Save(job *po.HzmJob) error {
-	return global.SingletonPool().Mysql.
+	err := global.SingletonPool().Mysql.
 		Select("ExecutorId", "Name", "ScheduleType", "ScheduleValue",
 			"Parameters", "Description", "Head", "RouterStrategy").
 		Create(job).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmJobDao) FindRunningJobs() ([]*po.HzmJob, error) {
@@ -60,6 +69,8 @@ func (my *HzmJobDao) LogicDeleteBatchByExecutorIds(executorIds []int64) error {
 			global.SingletonPool().Cron.Remove(cron.EntryID(*job.CronEntryId))
 		}
 	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
 	return nil
 }
 
@@ -110,11 +121,19 @@ func (my *HzmJobDao) FindById(id int64) (*po.HzmJob, error) {
 }
 
 func (my *HzmJobDao) UpdateJobStatus(id int64, status po.JobStatus) error {
-	return global.SingletonPool().Mysql.
+	err := global.SingletonPool().Mysql.
 		Model(&po.HzmJob{}).
 		Where("valid = 1 and id = ?", id).
 		Update("status", status).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmJobDao) UpdateCronEntryId(id int64, cronEntryId int) error {
@@ -158,6 +177,8 @@ func (my *HzmJobDao) DeleteBatch(ids []int64) error {
 			global.SingletonPool().Cron.Remove(cron.EntryID(*job.CronEntryId))
 		}
 	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
 	return nil
 }
 
@@ -177,9 +198,17 @@ func (my *HzmJobDao) FindByExecutorIdAndName(executorId *int64, name *string) (*
 }
 
 func (my *HzmJobDao) Update(job *po.HzmJob) error {
-	return global.SingletonPool().Mysql.
+	err := global.SingletonPool().Mysql.
 		Save(job).
 		Error
+
+	if err != nil {
+		return err
+	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseDataBlock)
+
+	return nil
 }
 
 func (my *HzmJobDao) FindByExecutorId(executorId *int64) ([]*po.HzmJob, error) {

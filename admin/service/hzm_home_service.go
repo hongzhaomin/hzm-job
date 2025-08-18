@@ -105,6 +105,8 @@ func (my *HzmHomeService) SyncScheduleStatisticsJob(dateTime time.Time) {
 			global.SingletonPool().Log.Error("== SyncScheduleStatisticsJob ==> 同步调度统计任务失败", "err", err)
 		}
 	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseScheduleTrend)
 }
 
 // ReceiveMsg 消费调度统计消息
@@ -122,4 +124,6 @@ func (my *HzmHomeService) ReceiveMsg(msg *vo.ScheduleStaMsg) {
 			global.SingletonPool().Log.Error("== ReceiveMsg ==> 累计调度统计任务失败", "err", err)
 		}
 	}
+
+	global.SingletonPool().MessageBus.SendMsg(vo.SseScheduleTrend)
 }

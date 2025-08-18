@@ -14,6 +14,7 @@ func NewMessageBus() *MessageBusImpl {
 	return &MessageBusImpl{
 		scheduleStaMsgChan: make(chan *vo.ScheduleStaMsg, 20),
 		opeLogMsgChan:      make(chan *vo.OperateLogMsg, 20),
+		sseMsgChan:         make(chan vo.SseMsg, 20),
 	}
 }
 
@@ -28,6 +29,9 @@ type MessageBusImpl struct {
 	// 操作日志消息相关
 	opeLogMsgChan        chan *vo.OperateLogMsg
 	hzmOperateLogService HzmOperateLogService
+
+	// sse消息
+	sseMsgChan chan vo.SseMsg
 }
 
 func (my *MessageBusImpl) SendMsg(message any) {
@@ -38,6 +42,9 @@ func (my *MessageBusImpl) SendMsg(message any) {
 	case *vo.OperateLogMsg:
 		global.SingletonPool().Log.Info("SendMsg ==> 发送操作日志消息", "msg", *msg)
 		my.opeLogMsgChan <- msg
+	case vo.SseMsg:
+		global.SingletonPool().Log.Info("SendMsg ==> 发送SSE消息", "msg", msg)
+		my.sseMsgChan <- msg
 	default:
 		msgStr, _ := json.Marshal(msg)
 		global.SingletonPool().Log.Info("SendMsg ==> 不支持的消息类型", "msg", string(msgStr))
@@ -59,10 +66,15 @@ func (my *MessageBusImpl) ListenEnable() {
 	}
 }
 
+func (my *MessageBusImpl) GetSseMsgChan() <-chan vo.SseMsg {
+	return my.sseMsgChan
+}
+
 func (my *MessageBusImpl) Stop() {
 	if my.cancelMsgBus != nil {
 		my.cancelMsgBus()
 	}
 	close(my.scheduleStaMsgChan)
 	close(my.opeLogMsgChan)
+	close(my.sseMsgChan)
 }
